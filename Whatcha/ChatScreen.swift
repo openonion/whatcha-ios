@@ -162,7 +162,7 @@ private struct MessageRow: View {
     }
 
     private var avatar: some View {
-        Image(line.fromParent ? "avatar_parent" : "avatar_agent")
+        Image(uiImage: UIImage(named: line.fromParent ? "avatar_parent" : "avatar_agent")!)
             .resizable()
             .frame(width: 60, height: 60)
             .clipShape(RoundedRectangle(cornerRadius: 6))

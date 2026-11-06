@@ -40,6 +40,26 @@
                ReferencedContainer = "container:Whatcha.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "FFD340ABB71BB0E4A500BCC9"
+               BuildableName = "WhatchaUITests.xctest"
+               BlueprintName = "WhatchaUITests"
+               ReferencedContainer = "container:Whatcha.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D2612B7E5E270029CD42DE3B"
+               BuildableName = "WhatchaAppTests.xctest"
+               BlueprintName = "WhatchaAppTests"
+               ReferencedContainer = "container:Whatcha.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

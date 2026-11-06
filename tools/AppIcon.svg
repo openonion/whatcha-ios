@@ -1,0 +1,2 @@
+<!-- Raster source: Android res/drawable/ic_launcher_foreground.xml and res/values/colors.xml. Adaptive overscan removed for the iOS mask. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="1024" height="1024"><rect x="18" y="18" width="72" height="72" fill="#07C160"/><path fill="#FFFFFF" d="M38,32 H70 A10,10 0 0 1 80,42 V62 A10,10 0 0 1 70,72 H48 L36,80 L38,71 A10,10 0 0 1 28,62 V42 A10,10 0 0 1 38,32 Z"/><circle fill="#07C160" cx="44" cy="52" r="4"/><circle fill="#07C160" cx="54" cy="52" r="4"/><circle fill="#07C160" cx="64" cy="52" r="4"/></svg>

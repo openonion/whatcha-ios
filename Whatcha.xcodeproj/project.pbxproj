@@ -7,39 +7,65 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E0487534670EA9560C1E8E5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
+		0E84D1ECA48E296F295B0143 /* AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */; };
 		11A86649037859DE60A01070 /* WhatchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */; };
+		15CEC826DA14727D6E66F4AF /* AppIcon20x20@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */; };
 		1DCB404EB7E555B75BF30EC8 /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
 		30C64A1CB0CC9CDA1B98C67F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
 		44989D00CD4778617387CEEB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
+		46B5B0CEFEBD1E9893483212 /* AppIcon40x40@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */; };
+		493F2B18DF189CCE9B06166F /* AppIcon29x29@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */; };
 		5101CFAB91D49AA3DBDB78D5 /* HeaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38DE41A181DE0BA30D8D3CB /* HeaderTests.swift */; };
 		52F6872F8A4E746FEE684B6E /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C84DEAB665F0AB2E887ACB9 /* ChatStoreTests.swift */; };
 		60FFE7F5EF6CACF193DF71A0 /* Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F28F57173F887F88C50D2D /* Identity.swift */; };
 		683E8820294D357127C53343 /* AgentProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A087FC941B186FF9C0CC5A /* AgentProtocol.swift */; };
+		6A1FA369951AD7CBCE42116B /* AppIcon60x60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */; };
 		7CEE6CFAD3DBAB62A6C351C8 /* SilentIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */; };
 		7E97DD49F750D00C9619F9B6 /* AgentProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */; };
 		8B8501BB1CF27334BC678E91 /* avatar_agent.png in Resources */ = {isa = PBXBuildFile; fileRef = 87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */; };
 		9F7B33AA9037C23033FA6244 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD585417E56A9D34501F6763 /* Conversation.swift */; };
 		A00380EF7F72B647E307D4FB /* ChatStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9AD42BF6E63B47F990E53F /* ChatStatus.swift */; };
+		B32EF882278A106F68C1EF47 /* AppIcon20x20@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */; };
+		BB9A220426A0760C17A93600 /* AppIcon29x29@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */; };
 		C23FEDB1C48D3C5792FA396F /* avatar_parent.png in Resources */ = {isa = PBXBuildFile; fileRef = BFB90966311F25185A2DDA67 /* avatar_parent.png */; };
 		D1BC3F682276BC56BBE94D6B /* Wire.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCACF20313FCC4E457E40A49 /* Wire.swift */; };
 		D7DC60CD27A7A2F3F537344D /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF93D16BE6B9372F7C9F2BE2 /* ChatStore.swift */; };
 		DBCF690F8E23A14E1DC05FFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
 		DE07292AA2F6DA45B9B7FA97 /* ConversationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE452D55E1CC974424654AF /* ConversationTests.swift */; };
 		DF681ECB0B27D6144F869C95 /* AgentLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117250476721A78AE8E7DBFA /* AgentLink.swift */; };
+		E155CD0D6EC57A3E453CEF28 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
 		E56C56B705206B8EFDE6A5F8 /* ChatScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E6218A2E3C9D6BD3B8D1A0 /* ChatScreen.swift */; };
 		E88C3AD9946EAAFD38745E0C /* ChatModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EB0A958B1CFFF310BB0E90 /* ChatModel.swift */; };
 		EF1867F8863C01AD9A5BFA3A /* WireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A15CA3AF65A3DF8CD928D8A /* WireTests.swift */; };
+		EFCA88D518584AB82C8A7B70 /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31621978245BDB6A42028B1 /* LaunchTests.swift */; };
 		F0F85B1D619B54B0BC049A1A /* android-wire-vector.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = 89F56219CE21459A70752F7B /* android-wire-vector.jsonl */; };
+		F591F9675C138519F39D277B /* AvatarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01F13D2A80961B50BEF2010 /* AvatarTests.swift */; };
 		FED48E2A1358668A3652F6BE /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
+		FFD02339E999EB65B79B51C5 /* AppIcon40x40@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2123406CCDAB719BB53C8129 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EF97B19EC784B9B741D90694 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AB79D9782755486B9867B544;
+			remoteInfo = Whatcha;
+		};
 		6A5FD6ACA636B21E246E1021 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EF97B19EC784B9B741D90694 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1291DBD6EC8B932EC1BE3249;
 			remoteInfo = WhatchaCore;
+		};
+		94903FA29A999DC00390B66D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EF97B19EC784B9B741D90694 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AB79D9782755486B9867B544;
+			remoteInfo = Whatcha;
 		};
 		C544D36259F25406C22FDB98 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -54,6 +80,7 @@
 		0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentProtocolTests.swift; sourceTree = "<group>"; };
 		117250476721A78AE8E7DBFA /* AgentLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentLink.swift; sourceTree = "<group>"; };
 		332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SilentIdentity.swift; sourceTree = "<group>"; };
+		37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon60x60@2x.png"; sourceTree = "<group>"; };
 		39A087FC941B186FF9C0CC5A /* AgentProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentProtocol.swift; sourceTree = "<group>"; };
 		4845FABC1EFA51ECE119229D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4C84DEAB665F0AB2E887ACB9 /* ChatStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
@@ -65,19 +92,30 @@
 		87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = avatar_agent.png; sourceTree = "<group>"; };
 		89F56219CE21459A70752F7B /* android-wire-vector.jsonl */ = {isa = PBXFileReference; includeInIndex = 1; path = "android-wire-vector.jsonl"; sourceTree = "<group>"; };
 		8A15CA3AF65A3DF8CD928D8A /* WireTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WireTests.swift; sourceTree = "<group>"; };
+		8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon20x20@3x.png"; sourceTree = "<group>"; };
 		96EE7354A37A6BC75993386B /* WhatchaCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhatchaCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon29x29@2x.png"; sourceTree = "<group>"; };
 		99395F8F63791F94E7D355BB /* PLAN.md */ = {isa = PBXFileReference; includeInIndex = 1; path = PLAN.md; sourceTree = "<group>"; };
+		99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon40x40@2x.png"; sourceTree = "<group>"; };
 		9E9AD42BF6E63B47F990E53F /* ChatStatus.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStatus.swift; sourceTree = "<group>"; };
 		BA204E2FA69FF987B969AE4F /* Build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Build.xcconfig; sourceTree = "<group>"; };
 		BCACF20313FCC4E457E40A49 /* Wire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Wire.swift; sourceTree = "<group>"; };
 		BF93D16BE6B9372F7C9F2BE2 /* ChatStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		BFB90966311F25185A2DDA67 /* avatar_parent.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = avatar_parent.png; sourceTree = "<group>"; };
+		C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon29x29@3x.png"; sourceTree = "<group>"; };
+		C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon40x40@3x.png"; sourceTree = "<group>"; };
 		CD585417E56A9D34501F6763 /* Conversation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		CD848FB7103165364493D359 /* WhatchaAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhatchaAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D38DE41A181DE0BA30D8D3CB /* HeaderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HeaderTests.swift; sourceTree = "<group>"; };
+		DA3A70B0A030771EB9F74CB1 /* WhatchaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhatchaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE9C2943313766C656FF26BF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WhatchaApp.swift; sourceTree = "<group>"; };
+		E31621978245BDB6A42028B1 /* LaunchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
+		F01F13D2A80961B50BEF2010 /* AvatarTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AvatarTests.swift; sourceTree = "<group>"; };
+		F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon60x60@3x.png"; sourceTree = "<group>"; };
 		F3F28F57173F887F88C50D2D /* Identity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
 		FAE452D55E1CC974424654AF /* ConversationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConversationTests.swift; sourceTree = "<group>"; };
+		FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon20x20@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +125,14 @@
 			files = (
 				44989D00CD4778617387CEEB /* Foundation.framework in Frameworks */,
 				FED48E2A1358668A3652F6BE /* WhatchaCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B3B086D8EDD196099D70636A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E155CD0D6EC57A3E453CEF28 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,9 +153,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FF6B939E023D8CE92D11BA6C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E0487534670EA9560C1E8E5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		16C58B8CB85B8D98A5F6FA54 /* WhatchaAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				F01F13D2A80961B50BEF2010 /* AvatarTests.swift */,
+			);
+			name = WhatchaAppTests;
+			path = Tests/WhatchaAppTests;
+			sourceTree = "<group>";
+		};
 		510E0B90FB5EA807B710915C /* WhatchaCore */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,11 +187,28 @@
 			path = Sources/WhatchaCore;
 			sourceTree = "<group>";
 		};
+		7BEB602AED5C1DFE7DFCF5B5 /* WhatchaUITests */ = {
+			isa = PBXGroup;
+			children = (
+				E31621978245BDB6A42028B1 /* LaunchTests.swift */,
+			);
+			name = WhatchaUITests;
+			path = Tests/WhatchaUITests;
+			sourceTree = "<group>";
+		};
 		7FEE3A0B9139D25E37692995 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */,
 				BFB90966311F25185A2DDA67 /* avatar_parent.png */,
+				FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */,
+				8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */,
+				974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */,
+				C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */,
+				99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */,
+				C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */,
+				37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */,
+				F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */,
 			);
 			name = Resources;
 			path = Resources;
@@ -186,6 +266,8 @@
 				735E6291234F1B3B5D890065 /* Whatcha.app */,
 				76251A549180BD8AA0E507F5 /* WhatchaTests.xctest */,
 				96EE7354A37A6BC75993386B /* WhatchaCore.framework */,
+				DA3A70B0A030771EB9F74CB1 /* WhatchaUITests.xctest */,
+				CD848FB7103165364493D359 /* WhatchaAppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -200,6 +282,8 @@
 				6B472057430640F1CE8E36A0 /* Config.example.xcconfig */,
 				99395F8F63791F94E7D355BB /* PLAN.md */,
 				510E0B90FB5EA807B710915C /* WhatchaCore */,
+				7BEB602AED5C1DFE7DFCF5B5 /* WhatchaUITests */,
+				16C58B8CB85B8D98A5F6FA54 /* WhatchaAppTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -252,6 +336,24 @@
 			productReference = 735E6291234F1B3B5D890065 /* Whatcha.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D2612B7E5E270029CD42DE3B /* WhatchaAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99C88ED2468C8CC5D62AB915 /* Build configuration list for PBXNativeTarget "WhatchaAppTests" */;
+			buildPhases = (
+				D1FCC12726F4A9977DEF1946 /* Sources */,
+				B3B086D8EDD196099D70636A /* Frameworks */,
+				3E91FBA0E93B7665DD721F34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAA036A542A2E9FCB26EE6C7 /* PBXTargetDependency */,
+			);
+			name = WhatchaAppTests;
+			productName = WhatchaAppTests;
+			productReference = CD848FB7103165364493D359 /* WhatchaAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D3C20AB53C52278E30EDD881 /* WhatchaTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 118BB1F7541635D43C8C7957 /* Build configuration list for PBXNativeTarget "WhatchaTests" */;
@@ -269,6 +371,24 @@
 			productName = WhatchaTests;
 			productReference = 76251A549180BD8AA0E507F5 /* WhatchaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FFD340ABB71BB0E4A500BCC9 /* WhatchaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 419F565412FD425D27F3FAF5 /* Build configuration list for PBXNativeTarget "WhatchaUITests" */;
+			buildPhases = (
+				1B8B7B6B1BC8070D5EFF42E7 /* Sources */,
+				FF6B939E023D8CE92D11BA6C /* Frameworks */,
+				A9D948946255A58CCB2DD60C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1C5C55882805F68829DF319 /* PBXTargetDependency */,
+			);
+			name = WhatchaUITests;
+			productName = WhatchaUITests;
+			productReference = DA3A70B0A030771EB9F74CB1 /* WhatchaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -295,17 +415,34 @@
 				AB79D9782755486B9867B544 /* Whatcha */,
 				D3C20AB53C52278E30EDD881 /* WhatchaTests */,
 				1291DBD6EC8B932EC1BE3249 /* WhatchaCore */,
+				FFD340ABB71BB0E4A500BCC9 /* WhatchaUITests */,
+				D2612B7E5E270029CD42DE3B /* WhatchaAppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3E91FBA0E93B7665DD721F34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8928499608F3A315646D4677 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				8B8501BB1CF27334BC678E91 /* avatar_agent.png in Resources */,
 				C23FEDB1C48D3C5792FA396F /* avatar_parent.png in Resources */,
+				B32EF882278A106F68C1EF47 /* AppIcon20x20@2x.png in Resources */,
+				15CEC826DA14727D6E66F4AF /* AppIcon20x20@3x.png in Resources */,
+				493F2B18DF189CCE9B06166F /* AppIcon29x29@2x.png in Resources */,
+				BB9A220426A0760C17A93600 /* AppIcon29x29@3x.png in Resources */,
+				FFD02339E999EB65B79B51C5 /* AppIcon40x40@2x.png in Resources */,
+				46B5B0CEFEBD1E9893483212 /* AppIcon40x40@3x.png in Resources */,
+				6A1FA369951AD7CBCE42116B /* AppIcon60x60@2x.png in Resources */,
+				0E84D1ECA48E296F295B0143 /* AppIcon60x60@3x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,6 +451,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				F0F85B1D619B54B0BC049A1A /* android-wire-vector.jsonl in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9D948946255A58CCB2DD60C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +471,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1B8B7B6B1BC8070D5EFF42E7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFCA88D518584AB82C8A7B70 /* LaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A7CB0649A0CBACF204647F7A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,6 +500,14 @@
 				DE07292AA2F6DA45B9B7FA97 /* ConversationTests.swift in Sources */,
 				5101CFAB91D49AA3DBDB78D5 /* HeaderTests.swift in Sources */,
 				EF1867F8863C01AD9A5BFA3A /* WireTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1FCC12726F4A9977DEF1946 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F591F9675C138519F39D277B /* AvatarTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -379,6 +539,18 @@
 			target = 1291DBD6EC8B932EC1BE3249 /* WhatchaCore */;
 			targetProxy = C544D36259F25406C22FDB98 /* PBXContainerItemProxy */;
 		};
+		C1C5C55882805F68829DF319 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Whatcha;
+			target = AB79D9782755486B9867B544 /* Whatcha */;
+			targetProxy = 2123406CCDAB719BB53C8129 /* PBXContainerItemProxy */;
+		};
+		FAA036A542A2E9FCB26EE6C7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Whatcha;
+			target = AB79D9782755486B9867B544 /* Whatcha */;
+			targetProxy = 94903FA29A999DC00390B66D /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -387,7 +559,10 @@
 			baseConfigurationReference = BA204E2FA69FF987B969AE4F /* Build.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Whatcha/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -397,6 +572,26 @@
 				SUPPORTED_PLATFORMS = iphonesimulator;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		15C3785BFDB636AEA97B54EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchaapptests;
+				SDKROOT = iphonesimulator;
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Whatcha.app/Whatcha";
 			};
 			name = Debug;
 		};
@@ -466,6 +661,26 @@
 				SUPPORTED_PLATFORMS = iphonesimulator;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		50EA80DAB69EEC3FE3E3E484 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchauitests;
+				SDKROOT = iphonesimulator;
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Whatcha;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -601,12 +816,55 @@
 			};
 			name = Debug;
 		};
+		D34A601EBA42F1C505ABDF1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchaapptests;
+				SDKROOT = iphonesimulator;
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Whatcha.app/Whatcha";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EFD6BF73535BE36E5D2EFEB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchauitests;
+				SDKROOT = iphonesimulator;
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Whatcha;
+			};
+			name = Debug;
+		};
 		FE1A69D5F79EC3447D00FD1F /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BA204E2FA69FF987B969AE4F /* Build.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Whatcha/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -628,6 +886,24 @@
 			buildConfigurations = (
 				4B07BD0E6ACD73CFB5E7B515 /* Release */,
 				C2BBC55DAAAE0618AC2F8812 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		419F565412FD425D27F3FAF5 /* Build configuration list for PBXNativeTarget "WhatchaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50EA80DAB69EEC3FE3E3E484 /* Release */,
+				EFD6BF73535BE36E5D2EFEB7 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		99C88ED2468C8CC5D62AB915 /* Build configuration list for PBXNativeTarget "WhatchaAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D34A601EBA42F1C505ABDF1A /* Release */,
+				15C3785BFDB636AEA97B54EE /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
