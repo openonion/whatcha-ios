@@ -1,0 +1,3 @@
+AGENT_ADDRESS =
+INVITE_CODE =
+#include? "../Config.xcconfig"

@@ -23,3 +23,39 @@ Commit only to `main` of this repo, English messages, no Co-Authored-By. No try/
 End-to-end runs use a separate test agent with its own key, never a family agent. The owner runs it and the simulator check.
 
 ## Round log
+
+### Round 1 · 2026-11-07 · M1 implementation, simulator acceptance pending
+
+Read the Android README, ship backlog/round evidence (especially 30–31 and 34a), all app Kotlin sources and the relevant unit tests. The reference checkout is `wechat-look`, one documentation commit beyond `v0.1.8`; its app Kotlin sources have no diff from the tag. No Android files were changed.
+
+Built:
+
+- An iOS 17+ SwiftUI iPhone app and shared `Whatcha` Xcode scheme, restricted to the simulator, with no signing team or third-party dependencies. One WeChat-style text screen: scaled 24pt body text, 60pt input/send/retry targets, grey background, green/white bubbles with tails, the Android teacup/robot PNGs, time labels, and a composer that follows the keyboard. The title and trouble strips use Android's wording and state rules.
+- A first-launch CryptoKit Ed25519 identity stored silently in Keychain. Build-time pairing comes from ignored `Config.xcconfig` through Info.plist; `Config.example.xcconfig` is prepared as the version-control template. The local ignored config targets the plan's test agent. No existing signing identity or `~/.co` was accessed.
+- `URLSessionWebSocketTask` with signed CONNECT/INPUT/ONBOARD_SUBMIT, PING/PONG, invite rejection and host-forgotten handling, saved session ID, profile name, CONNECTED `chat_items` and running status. Retries use 5→10→20→40→60 seconds, a 10-second deadline on every connection attempt, and foreground `retryNow`. Old socket callbacks cannot affect a newer connection.
+- An atomically saved conversation with queued/sent/done/failed states, one question per turn, grey delivery indicator, red tap-to-retry mark and failure note. Reopening preserves the session and waiting line; a completed stored answer is recovered rather than asking again, while a running turn stays waiting. Same-question and already-shown-answer guards match Android 34a.
+- XCTest coverage shared by an internal iOS framework/test target and a dependency-free Swift package for native macOS execution. Android-generated CONNECT/onboarding/Chinese INPUT fixtures use the deterministic public test seed `00…1f`; fixture generation and reverse verification tools are included.
+
+Red/green evidence (logs retained locally under ignored `build/verification/`):
+
+- Conversation/header/backoff stubs: 31 tests executed, 31 failed assertions; implementation: 31 tests, zero failures.
+- Wire/protocol stubs: 53 tests executed, 28 failed assertions. Persistence was also tested against a stub before implementation: its one test failed two assertions for lost session/line and missing recovered answer.
+- Final native macOS XCTest run: **54 tests, zero failures** (21 conversation, 6 header, 4 reconnect, 12 protocol, 10 wire/signature, 1 disk-reopen test). The strengthened signature assertions verify both Android's exact fixture signatures and newly generated CryptoKit signatures against identical canonical payload bytes. Reverse verification also passed: Android's actual `canonical()` and Bouncy Castle accepted three Swift-generated frames.
+- `xcodebuild -scheme Whatcha -destination 'generic/platform=iOS Simulator' -derivedDataPath build build`: **BUILD SUCCEEDED** for arm64 and x86_64. Generic `build-for-testing`: **TEST BUILD SUCCEEDED**, including the app and all 54 iOS test cases. The built Info.plist contains the local test pairing and iOS 17 minimum. No device build or distribution was attempted.
+- `xcrun simctl list runtimes` was rechecked throughout: CoreSimulatorService is inaccessible (`Connection refused` / invalid connection), so no usable runtime/device can be discovered from this session. The requested iPhone 15 test command, with a 5-second destination timeout, could not execute tests because no concrete simulator device was available. **Zero iOS tests executed.** Native XCTest execution does not replace simulator acceptance.
+
+Platform differences:
+
+- M1's empty hint ends 「打字就行」, and there are no voice/photo controls or read-aloud actions, because those features are excluded from this milestone. iOS uses its own keyboard and safe areas.
+- CryptoKit randomizes Ed25519 signatures, whereas Android/Bouncy Castle emits deterministic bytes. Therefore byte-identical generated signatures for the same key/frame are incompatible with the required CryptoKit implementation. Payload bytes and the public key match Android exactly; both directions verify. This is documented by [Apple's signature API](https://developer.apple.com/documentation/cryptokit/curve25519/signing/privatekey/signature(for:)). No alternative cryptography or extra package was added to force deterministic output.
+- The reused avatar PNGs are direct bundle resources: Xcode's asset-catalog compiler required simulator services even for a generic build. Loading the original PNGs directly permits the required runtime-independent build.
+
+Independent review: an AI reviewer acting as a technology founder with marketing/UI experience inspected the source states for empty/unpaired, connecting, online, queued/sent, failure/retry, offline, recovered answers, long text, large type and keyboard dismissal, then re-reviewed the fixes. **No rendered screen or live flow was inspected.** Findings:
+
+- **P2, bubble width:** the original flexible frame was inside the bubble background, which could stretch short messages and weaken the WeChat visual hierarchy. Moved the constraint to the outer bubble/delivery row. Recheck criterion: 「在干嘛」 and a one-character reply hug their text, multiline messages wrap, delivery marks stay adjacent and tails touch bubbles at normal/large text sizes. Fixed by source; rendered recheck remains open.
+- **P2, signature coverage:** initial fixture checks discarded generated CONNECT/onboarding signatures, leaving their signing regressions undetected. Assertions now verify both generated and fixture signatures, and test names describe interoperability accurately. Recheck criterion: invalid signatures must fail for each of the three frame types. The strengthened suite passes; reverse Android verification passes too.
+- **P3, first-launch identity:** initial code generated the key only with valid pairing, contrary to the stated first-launch rule. Moved Keychain loading before the pairing branch; final generic build rechecked. Keychain behavior still needs simulator execution.
+
+Could not verify: a parent's actual 「在干嘛」 through the public relay, invite onboarding on the simulator, Keychain persistence/access, rendered bubble geometry/avatars/colors, keyboard and large-text layout, scrolling to long replies, real offline/foreground backoff/deadline timing, failed-message retry, and reopening after the host completes with exactly one INPUT. The owner runs the test agent and simulator check as specified above; those remain the M1 acceptance gate. The host was not started or modified in this round.
+
+Commit restriction: the first red-step `git add` was rejected with `.git/index.lock: Operation not permitted`; this session's filesystem policy makes `.git` read-only and forbids escalation. Therefore **no commits could be created**, and the implementation remains uncommitted on `main`. Red/green runs were still performed in order. Nothing was pushed. Intended small commit sequence: specify queue/reconnect tests → implement queue/reconnect → specify wire/protocol fixtures/tests → implement wire/protocol → specify disk-reopen test → persist history → build simulator chat screen/link/identity → document verification. This sequence is a record of intended boundaries, not a claim of completed commits.
