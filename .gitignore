@@ -1,0 +1,5 @@
+build/
+Config.xcconfig
+*.xcuserstate
+xcuserdata/
+.DS_Store
