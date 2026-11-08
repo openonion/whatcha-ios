@@ -26,11 +26,19 @@ final class HeaderTests: XCTestCase {
         XCTAssertNil(statusText(.online))
         XCTAssertNil(statusText(.connecting))
         XCTAssertEqual(statusText(.offline), "暂时联系不上，\n稍后会自己重试")
-        XCTAssertEqual(statusText(.unpaired), "还没连上，\n让孩子重发安装包")
+        XCTAssertEqual(statusText(.unpaired), "还没连上，\n请让孩子帮忙看看")
     }
     func testReturnLooksLikeColdOpen() {
         XCTAssertEqual(headerTitle("小乐", lines: [], status: shownOnReturn(.offline)), "小乐(连接中…)")
         XCTAssertNil(statusText(shownOnReturn(.offline)))
+    }
+
+    func testNoTypingHintWithoutComposer() {
+        for status in Status.allCases {
+            let composer = status != .unpaired && status != .refused
+            XCTAssertEqual(showsComposer(status), composer)
+            XCTAssertEqual(emptyChatHint("小乐", status: status).contains("打字"), composer)
+        }
     }
 }
 
@@ -41,7 +49,7 @@ final class ReconnectTests: XCTestCase {
     func testReturnRetriesOnlyWhileWaitingAndNotOnline() {
         for status in Status.allCases {
             XCTAssertFalse(retryNow(status, waiting: false))
-            XCTAssertEqual(retryNow(status, waiting: true), status != .online)
+            XCTAssertEqual(retryNow(status, waiting: true), status != .online && status != .refused)
         }
     }
     func testReturnPreservesUnpairedAndOnline() {

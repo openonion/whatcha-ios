@@ -1,12 +1,5 @@
 import Foundation
 
-public struct Pairing {
-    public let agent: String
-    public let invite: String?
-    public let relay = URL(string: "wss://oo.openonion.ai/ws/input")!
-    public init(agent: String, invite: String?) { self.agent = agent; self.invite = invite }
-}
-
 public enum LinkEvent: Equatable {
     case connected(String, running: Bool, history: [HistoryItem])
     case profile(String), reply(String), error(String), rejected, refused

@@ -43,6 +43,8 @@
 		F591F9675C138519F39D277B /* AvatarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01F13D2A80961B50BEF2010 /* AvatarTests.swift */; };
 		FED48E2A1358668A3652F6BE /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
 		FFD02339E999EB65B79B51C5 /* AppIcon40x40@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */; };
+		F13AD540A8491DA90BA952A2 /* Pairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F13AD540A8491DA90BA952A1 /* Pairing.swift */; };
+		F13AD540A8491DA90BA952A4 /* PairingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F13AD540A8491DA90BA952A3 /* PairingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -116,6 +118,8 @@
 		F3F28F57173F887F88C50D2D /* Identity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
 		FAE452D55E1CC974424654AF /* ConversationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConversationTests.swift; sourceTree = "<group>"; };
 		FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon20x20@2x.png"; sourceTree = "<group>"; };
+		F13AD540A8491DA90BA952A1 /* Pairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pairing.swift; sourceTree = "<group>"; };
+		F13AD540A8491DA90BA952A3 /* PairingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,6 +181,7 @@
 			isa = PBXGroup;
 			children = (
 				39A087FC941B186FF9C0CC5A /* AgentProtocol.swift */,
+				F13AD540A8491DA90BA952A1 /* Pairing.swift */,
 				9E9AD42BF6E63B47F990E53F /* ChatStatus.swift */,
 				BF93D16BE6B9372F7C9F2BE2 /* ChatStore.swift */,
 				CD585417E56A9D34501F6763 /* Conversation.swift */,
@@ -218,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */,
+				F13AD540A8491DA90BA952A3 /* PairingTests.swift */,
 				4C84DEAB665F0AB2E887ACB9 /* ChatStoreTests.swift */,
 				FAE452D55E1CC974424654AF /* ConversationTests.swift */,
 				D38DE41A181DE0BA30D8D3CB /* HeaderTests.swift */,
@@ -401,10 +407,10 @@
 			};
 			buildConfigurationList = DC72C213766208C33C75481B /* Build configuration list for PBXProject "Whatcha" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = en;
+			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				"zh-Hans",
 				Base,
 			);
 			mainGroup = E0E4868712864F97636FBD02;
@@ -496,6 +502,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7E97DD49F750D00C9619F9B6 /* AgentProtocolTests.swift in Sources */,
+				F13AD540A8491DA90BA952A4 /* PairingTests.swift in Sources */,
 				52F6872F8A4E746FEE684B6E /* ChatStoreTests.swift in Sources */,
 				DE07292AA2F6DA45B9B7FA97 /* ConversationTests.swift in Sources */,
 				5101CFAB91D49AA3DBDB78D5 /* HeaderTests.swift in Sources */,
@@ -516,6 +523,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				683E8820294D357127C53343 /* AgentProtocol.swift in Sources */,
+				F13AD540A8491DA90BA952A2 /* Pairing.swift in Sources */,
 				A00380EF7F72B647E307D4FB /* ChatStatus.swift in Sources */,
 				D7DC60CD27A7A2F3F537344D /* ChatStore.swift in Sources */,
 				9F7B33AA9037C23033FA6244 /* Conversation.swift in Sources */,
@@ -860,6 +868,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BA204E2FA69FF987B969AE4F /* Build.xcconfig */;
 			buildSettings = {
+				AGENT_ADDRESS = "";
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -867,6 +876,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Whatcha/Info.plist;
+				INVITE_CODE = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatcha;

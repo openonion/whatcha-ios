@@ -6,7 +6,11 @@ import WhatchaCore
 final class ChatModel: ObservableObject {
     @Published private(set) var snapshot: ChatSnapshot
     @Published private(set) var status: Status
+    @Published private(set) var pairingError: String?
     private let store: ChatStore
+    private let pairingStore: PairingStore
+    private var pairing: Pairing?
+    private let identity: Identity
     private var link: AgentLink?
     private var reconnectDelay: Double = 5
     private var retry: DispatchWorkItem?
@@ -14,19 +18,51 @@ final class ChatModel: ObservableObject {
 
     var lines: [Line] { snapshot.lines }
     var header: String { headerTitle(snapshot.title, lines: lines, status: status) }
+    var needsPairing: Bool { canPastePairing(pairing, status: status) }
 
     init() {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         store = ChatStore(url: directory.appendingPathComponent("chat.json"))
         snapshot = store.load()
-        let identity = Identity.loadFromKeychain()
-        let pairing = Self.loadPairing()
-        status = pairing == nil ? .unpaired : .connecting
-        if let pairing {
-            link = AgentLink(pairing: pairing, identity: identity, sessionID: snapshot.sessionID)
-            link!.onEvent = { [weak self] in self?.received($0) }
-            link!.onDisconnected = { [weak self] in self?.disconnected() }
+        identity = Identity.loadFromKeychain()
+        status = .unpaired
+        #if DEBUG
+        let unpairedTest = ProcessInfo.processInfo.arguments.contains("-uitest-unpaired")
+        let testSuite = "ai.openonion.whatcha.UITests"
+        let defaults = unpairedTest ? UserDefaults(suiteName: testSuite)! : .standard
+        if unpairedTest { defaults.removePersistentDomain(forName: testSuite) }
+        pairingStore = PairingStore(defaults: defaults)
+        if unpairedTest { return }
+        #else
+        pairingStore = PairingStore()
+        #endif
+        if let pairing = pairingStore.load() ?? Self.loadConfigPairing() {
+            start(pairing)
         }
+    }
+
+    func paste(_ text: String) {
+        guard needsPairing else { return }
+        guard let pairing = pairingStore.pair(from: text, status: status) else {
+            pairingError = "这不是口令，请让孩子重新发一条"
+            return
+        }
+        pairingError = nil
+        snapshot.sessionID = nil
+        save()
+        start(pairing)
+    }
+
+    private func start(_ pairing: Pairing) {
+        link?.onDisconnected = nil
+        link?.onEvent = nil
+        link?.drop()
+        self.pairing = pairing
+        link = AgentLink(pairing: pairing, identity: identity, sessionID: snapshot.sessionID)
+        link!.onEvent = { [weak self] in self?.received($0) }
+        link!.onDisconnected = { [weak self] in self?.disconnected() }
+        reconnectDelay = 5
+        status = .connecting
         open()
     }
 
@@ -61,6 +97,8 @@ final class ChatModel: ObservableObject {
     private func received(_ event: LinkEvent) {
         switch event {
         case .connected(let sessionID, let running, let history):
+            pairing = pairing!.afterConnected()
+            pairingStore.save(pairing!)
             snapshot.sessionID = sessionID
             snapshot.lines = lines.afterReconnect(agentRunning: running, history: history, now: now)
             deadline?.cancel()
@@ -72,7 +110,7 @@ final class ChatModel: ObservableObject {
             snapshot.lines = lines.answerOldest() + [Line(fromParent: false, text: text, at: now)]
         case .error(let message): snapshot.lines = lines.failOldest(message)
         case .rejected: snapshot.lines = lines.requeueSent()
-        case .refused: status = .unpaired
+        case .refused: refused()
         }
         save()
         // A host that forgot us must acknowledge CONNECT before another INPUT.
@@ -80,9 +118,18 @@ final class ChatModel: ObservableObject {
         sendQueued()
     }
 
+    private func refused() {
+        status = .refused
+        retry?.cancel()
+        retry = nil
+        deadline?.cancel()
+        deadline = nil
+    }
+
     private func disconnected() {
         deadline?.cancel()
         deadline = nil
+        guard status != .refused else { return }
         if status != .unpaired { status = .offline }
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -95,7 +142,7 @@ final class ChatModel: ObservableObject {
     }
 
     private func open() {
-        guard let link else { return }
+        guard status != .refused, let link else { return }
         link.open()
         let work = DispatchWorkItem { [weak self] in
             guard let self, giveUpTry(self.status) else { return }
@@ -108,11 +155,11 @@ final class ChatModel: ObservableObject {
     private func save() { store.save(snapshot) }
     private var now: Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
 
-    private static func loadPairing() -> Pairing? {
+    private static func loadConfigPairing() -> Pairing? {
         let address = Bundle.main.object(forInfoDictionaryKey: "AGENT_ADDRESS") as! String
         let invite = Bundle.main.object(forInfoDictionaryKey: "INVITE_CODE") as! String
         guard !address.isEmpty else { return nil }
         precondition(address.hasPrefix("0x") && address.count == 66, "Set AGENT_ADDRESS in Config.xcconfig")
-        return Pairing(agent: address, invite: invite.isEmpty ? nil : invite)
+        return Pairing(agent: address, invite: invite.isEmpty ? nil : invite).afterConnected()
     }
 }

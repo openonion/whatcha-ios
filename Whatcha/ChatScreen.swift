@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WhatchaCore
 
 private let chatBackground = Color(red: 237/255, green: 237/255, blue: 237/255)
@@ -15,6 +16,49 @@ struct ChatScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if model.needsPairing { unpaired } else { chat }
+        }
+        .font(.system(size: bodySize))
+        .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
+        .background(chatBackground.ignoresSafeArea())
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { typing = false }
+        }
+    }
+
+    private var unpaired: some View {
+        VStack(spacing: 0) {
+            if model.status == .refused { statusStrip("口令过期或用过了，\n请孩子重新发一条") }
+            pairingPrompt
+        }
+    }
+
+    private var pairingPrompt: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 28) {
+                    Text("请孩子在微信里发来口令，长按复制，再回到这里")
+                        .font(.system(size: bodySize, weight: .medium))
+                        .lineSpacing(8)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    PairingPasteControl(onPaste: model.paste)
+                        .frame(width: 240, height: max(72, bodySize * 3))
+                    if let error = model.pairingError {
+                        Text(error)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(24)
+                .frame(minHeight: geometry.size.height)
+            }
+        }
+    }
+
+    private var chat: some View {
+        VStack(spacing: 0) {
             Text(model.header)
                 .font(.system(size: bodySize, weight: .medium))
                 .frame(maxWidth: .infinity, minHeight: 60)
@@ -24,13 +68,7 @@ struct ChatScreen: View {
             Divider()
             if let trouble = statusText(model.status) { statusStrip(trouble) }
             if model.lines.isEmpty { emptyChat } else { conversation }
-            if model.status != .unpaired { composer }
-        }
-        .font(.system(size: bodySize))
-        .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
-        .background(chatBackground.ignoresSafeArea())
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { typing = false }
+            if showsComposer(model.status) { composer }
         }
     }
 
@@ -47,8 +85,7 @@ struct ChatScreen: View {
     }
 
     private var emptyChat: some View {
-        Text(model.status == .unpaired ? "给孩子打个电话" :
-             "想知道孩子在干嘛，\n就在下面问\(model.snapshot.title)，\n打字就行")
+        Text(emptyChatHint(model.snapshot.title, status: model.status))
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .lineSpacing(8)
@@ -119,6 +156,55 @@ struct ChatScreen: View {
             .padding(.vertical, 10)
         }
         .background(barBackground)
+    }
+}
+
+private struct PairingPasteControl: UIViewRepresentable {
+    var onPaste: (String) -> Void
+
+    func makeCoordinator() -> Recipient { Recipient(onPaste: onPaste) }
+
+    func makeUIView(context: Context) -> UIPasteControl {
+        let configuration = UIPasteControl.Configuration()
+        configuration.displayMode = .labelOnly
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = UIColor(red: 7/255, green: 138/255, blue: 71/255, alpha: 1)
+        configuration.baseForegroundColor = .white
+        let control = UIPasteControl(configuration: configuration)
+        control.target = context.coordinator
+        control.accessibilityIdentifier = "pairing-paste"
+        return control
+    }
+
+    func updateUIView(_ uiView: UIPasteControl, context: Context) {
+        context.coordinator.onPaste = onPaste
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIPasteControl, context: Context) -> CGSize? {
+        proposal.replacingUnspecifiedDimensions(by: CGSize(width: 240, height: 72))
+    }
+
+    final class Recipient: UIResponder {
+        var onPaste: (String) -> Void
+
+        init(onPaste: @escaping (String) -> Void) {
+            self.onPaste = onPaste
+            super.init()
+            pasteConfiguration = UIPasteConfiguration(forAccepting: NSString.self)
+        }
+
+        override func canPaste(_ itemProviders: [NSItemProvider]) -> Bool {
+            itemProviders.contains { $0.canLoadObject(ofClass: NSString.self) }
+        }
+
+        override func paste(itemProviders: [NSItemProvider]) {
+            guard let provider = itemProviders.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { return }
+            provider.loadObject(ofClass: NSString.self) { object, error in
+                precondition(error == nil, "Could not load pasted text: \(String(describing: error))")
+                let text = object as! String
+                DispatchQueue.main.async { self.onPaste(text) }
+            }
+        }
     }
 }
 

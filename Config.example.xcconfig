@@ -1,4 +1,5 @@
-// Copy to Config.xcconfig, then set the child's agent address and invite.
-// Build-time pairing is included in Info.plist. Never commit a family's pairing.
+// Optional Debug pairing when no pairing is saved. Copy to Config.xcconfig.
+// Debug Info.plist includes these values; Release leaves them blank.
+// Never commit a family's pairing.
 AGENT_ADDRESS =
 INVITE_CODE =

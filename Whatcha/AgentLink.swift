@@ -21,7 +21,7 @@ final class AgentLink {
 
     func open() {
         precondition(socket == nil, "Only one connection at a time")
-        let task = session.webSocketTask(with: pairing.relay)
+        let task = session.webSocketTask(with: pairing.relay.appendingPathComponent("ws/input"))
         socket = task
         task.resume()
         sendFrame(protocolState.opened(), on: task)
