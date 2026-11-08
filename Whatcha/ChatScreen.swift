@@ -29,6 +29,7 @@ struct ChatScreen: View {
     private var unpaired: some View {
         VStack(spacing: 0) {
             if model.status == .refused { statusStrip("口令过期或用过了，\n请孩子重新发一条") }
+            if model.status == .offline, let trouble = statusText(model.status) { statusStrip(trouble) }
             pairingPrompt
         }
     }
@@ -37,7 +38,7 @@ struct ChatScreen: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 28) {
-                    Text("请孩子在微信里发来口令，长按复制，再回到这里")
+                    Text("请孩子在微信里发来口令，\n长按复制，再回到这里")
                         .font(.system(size: bodySize, weight: .medium))
                         .lineSpacing(8)
                         .multilineTextAlignment(.center)
@@ -52,6 +53,7 @@ struct ChatScreen: View {
                     }
                 }
                 .padding(24)
+                .frame(maxWidth: .infinity)
                 .frame(minHeight: geometry.size.height)
             }
         }

@@ -24,7 +24,7 @@ final class LaunchTests: XCTestCase {
                 app.terminate()
                 app.launch()
             }
-            XCTAssertFalse(app.staticTexts["这不是口令，请让孩子重新发一条"].exists)
+            XCTAssertFalse(app.staticTexts["没找到口令。回微信长按孩子发的那条，点「复制」，再回来"].exists)
             pasteFreshText(in: app, at: CGVector(dx: point.0, dy: point.1))
         }
         let invalidPaste = XCTAttachment(screenshot: app.screenshot())
@@ -45,7 +45,7 @@ final class LaunchTests: XCTestCase {
         let permission = XCTNSPredicateExpectation(
             predicate: NSPredicate { _, _ in springboard.alerts.count + app.alerts.count > 0 }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [permission], timeout: 3), .timedOut)
-        XCTAssertTrue(app.staticTexts["这不是口令，请让孩子重新发一条"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["没找到口令。回微信长按孩子发的那条，点「复制」，再回来"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "消息").firstMatch.exists)
         print("pairing-paste alerts: \(springboard.alerts.count + app.alerts.count)")
     }

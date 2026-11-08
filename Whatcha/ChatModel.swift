@@ -43,17 +43,20 @@ final class ChatModel: ObservableObject {
 
     func paste(_ text: String) {
         guard needsPairing else { return }
-        guard let pairing = pairingStore.pair(from: text, status: status) else {
-            pairingError = "这不是口令，请让孩子重新发一条"
-            return
-        }
-        pairingError = nil
+        pairingError = pairingPasteHint(pairing, status: status, text: text)
+        guard pairingError == nil,
+              let pairing = pairingStore.pair(from: text, status: status),
+              pairing != self.pairing else { return }
         snapshot.sessionID = nil
         save()
         start(pairing)
     }
 
     private func start(_ pairing: Pairing) {
+        retry?.cancel()
+        retry = nil
+        deadline?.cancel()
+        deadline = nil
         link?.onDisconnected = nil
         link?.onEvent = nil
         link?.drop()

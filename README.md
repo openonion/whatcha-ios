@@ -8,10 +8,10 @@ For development, optionally copy `Config.example.xcconfig` to `Config.xcconfig` 
 
 ## Try it in the Simulator
 
-Download [Whatcha-0.2.0-simulator.zip from Release v0.2.0](https://github.com/openonion/whatcha-ios/releases/tag/v0.2.0). Boot an iPhone simulator in Xcode, then run these commands in the download folder:
+Download `Whatcha-<version>-simulator.zip` from the [latest Release](https://github.com/openonion/whatcha-ios/releases/latest). Boot an iPhone simulator in Xcode, then run these commands in the download folder:
 
 ```sh
-unzip Whatcha-0.2.0-simulator.zip
+unzip Whatcha-*-simulator.zip
 xcrun simctl install booted Whatcha.app
 xcrun simctl launch booted ai.openonion.whatcha
 ```

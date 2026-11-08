@@ -43,11 +43,22 @@ public struct Pairing: Codable, Equatable {
 }
 
 public func canPastePairing(_ current: Pairing?, status: Status) -> Bool {
-    current == nil || (current?.accepted == false && status == .refused)
+    current?.accepted != true
 }
 
 public func pairingAfterPaste(_ current: Pairing?, status: Status, text: String) -> Pairing? {
-    canPastePairing(current, status: status) ? Pairing.parse(text) ?? current : current
+    guard canPastePairing(current, status: status), let parsed = Pairing.parse(text) else { return current }
+    if parsed.agent == current?.agent && parsed.invite == current?.invite { return current }
+    return parsed
+}
+
+public func pairingPasteHint(_ current: Pairing?, status: Status, text: String) -> String? {
+    guard canPastePairing(current, status: status),
+          pairingAfterPaste(current, status: status, text: text) == current else { return nil }
+    if Pairing.parse(text) != nil && (current?.refused == true || status == .refused) {
+        return "这条口令用过了，请孩子重新发一条"
+    }
+    return "没找到口令。回微信长按孩子发的那条，点「复制」，再回来"
 }
 
 public struct PairingStore {

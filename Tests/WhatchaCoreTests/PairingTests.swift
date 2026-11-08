@@ -60,16 +60,16 @@ final class PairingTests: XCTestCase {
         }
     }
 
-    func testCanPasteOnlyWhenMissingOrUnacceptedAndRefused() {
+    func testCanPasteAnyUnacceptedPairingRegardlessOfStatus() {
         let accepted = expected.afterConnected()
         for status in Status.allCases {
             XCTAssertTrue(canPastePairing(nil, status: status))
-            XCTAssertEqual(canPastePairing(expected, status: status), status == .refused)
+            XCTAssertTrue(canPastePairing(expected, status: status))
             XCTAssertFalse(canPastePairing(accepted, status: status))
         }
     }
 
-    func testRefusedPairingIsReplacedOnlyByValidCode() {
+    func testPendingPairingIsReplacedOnlyByDifferentValidCode() {
         let later = "#WC1." + String(repeating: "A", count: 59) + "#"
         let replacement = Pairing.parse(later)!
         XCTAssertEqual(pairingAfterPaste(nil, status: .unpaired, text: code), expected)
@@ -77,12 +77,69 @@ final class PairingTests: XCTestCase {
         XCTAssertEqual(pairingAfterPaste(expected, status: .refused, text: "普通文字"), expected)
         XCTAssertNil(pairingAfterPaste(nil, status: .unpaired, text: "普通文字"))
         XCTAssertFalse(replacement.accepted)
-        for status in [Status.connecting, .online, .offline, .unpaired] {
-            XCTAssertEqual(pairingAfterPaste(expected, status: status, text: later), expected)
+        for status in Status.allCases {
+            XCTAssertEqual(pairingAfterPaste(expected, status: status, text: later), replacement)
         }
         for status in Status.allCases {
             let accepted = expected.afterConnected()
             XCTAssertEqual(pairingAfterPaste(accepted, status: status, text: later), accepted)
+        }
+    }
+
+    func testSameCodePreservesPendingAndPersistedRefusal() {
+        for current in [expected, expected.afterRefused()] {
+            for status in Status.allCases {
+                XCTAssertEqual(pairingAfterPaste(current, status: status, text: code), current)
+                withDefaults { defaults, _ in
+                    let store = PairingStore(defaults: defaults)
+                    store.save(current)
+                    XCTAssertEqual(store.pair(from: code, status: status), current)
+                    XCTAssertEqual(store.load(), current)
+                }
+            }
+        }
+    }
+
+    func testPasteHintForMissingCodeRegardlessOfPendingStatus() {
+        for status in Status.allCases {
+            for current in [nil, expected, expected.afterRefused()] {
+                XCTAssertEqual(pairingPasteHint(current, status: status, text: "普通微信消息"),
+                               "没找到口令。回微信长按孩子发的那条，点「复制」，再回来")
+            }
+        }
+    }
+
+    func testPasteHintForSameRefusedCodeIncludingPersistedRefusal() {
+        XCTAssertEqual(pairingPasteHint(expected, status: .refused, text: code),
+                       "这条口令用过了，请孩子重新发一条")
+        for status in Status.allCases {
+            XCTAssertEqual(pairingPasteHint(expected.afterRefused(), status: status, text: code),
+                           "这条口令用过了，请孩子重新发一条")
+        }
+    }
+
+    func testPasteHintClearsForDifferentValidCodeAndAcceptedPairing() {
+        let later = "#WC1." + String(repeating: "A", count: 59) + "#"
+        for status in Status.allCases {
+            for current in [nil, expected, expected.afterRefused()] {
+                XCTAssertNil(pairingPasteHint(current, status: status, text: later))
+            }
+            for text in ["普通微信消息", code, later] {
+                XCTAssertNil(pairingPasteHint(expected.afterConnected(), status: status, text: text))
+            }
+        }
+    }
+
+    func testPendingSavedPairingCanBeReplacedInEveryStatus() {
+        let later = "#WC1." + String(repeating: "A", count: 59) + "#"
+        for status in Status.allCases {
+            withDefaults { defaults, suite in
+                let store = PairingStore(defaults: defaults)
+                store.save(expected)
+                let reopened = PairingStore(defaults: UserDefaults(suiteName: suite)!)
+                XCTAssertEqual(reopened.pair(from: later, status: status), Pairing.parse(later))
+                XCTAssertEqual(store.load(), Pairing.parse(later))
+            }
         }
     }
 
