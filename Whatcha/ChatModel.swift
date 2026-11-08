@@ -58,6 +58,10 @@ final class ChatModel: ObservableObject {
         link?.onEvent = nil
         link?.drop()
         self.pairing = pairing
+        if pairing.refused && !pairing.accepted {
+            status = .refused
+            return
+        }
         link = AgentLink(pairing: pairing, identity: identity, sessionID: snapshot.sessionID)
         link!.onEvent = { [weak self] in self?.received($0) }
         link!.onDisconnected = { [weak self] in self?.disconnected() }
@@ -119,6 +123,8 @@ final class ChatModel: ObservableObject {
     }
 
     private func refused() {
+        pairing = pairing!.afterRefused()
+        pairingStore.save(pairing!)
         status = .refused
         retry?.cancel()
         retry = nil

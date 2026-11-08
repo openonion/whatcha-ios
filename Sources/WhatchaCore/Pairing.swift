@@ -4,22 +4,30 @@ public struct Pairing: Codable, Equatable {
     public let agent: String
     public let invite: String?
     public private(set) var accepted: Bool = false
+    public private(set) var refused: Bool = false
     public var relay: URL { URL(string: "wss://oo.openonion.ai")! }
 
     public init(agent: String, invite: String?) { self.agent = agent; self.invite = invite }
 
-    private enum CodingKeys: String, CodingKey { case agent, invite, accepted }
+    private enum CodingKeys: String, CodingKey { case agent, invite, accepted, refused }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         agent = try values.decode(String.self, forKey: .agent)
         invite = try values.decodeIfPresent(String.self, forKey: .invite)
         accepted = try values.decodeIfPresent(Bool.self, forKey: .accepted) ?? false
+        refused = try values.decodeIfPresent(Bool.self, forKey: .refused) ?? false
     }
 
     public func afterConnected() -> Pairing {
         var pairing = self
         pairing.accepted = true
+        return pairing
+    }
+
+    public func afterRefused() -> Pairing {
+        var pairing = self
+        if !accepted { pairing.refused = true }
         return pairing
     }
 

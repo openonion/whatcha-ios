@@ -113,7 +113,36 @@ final class PairingTests: XCTestCase {
         let data = Data(#"{"agent":"0xold","invite":"old-ticket"}"#.utf8)
         let pairing = try JSONDecoder().decode(Pairing.self, from: data)
         XCTAssertFalse(pairing.accepted)
+        XCTAssertFalse(pairing.refused)
         XCTAssertTrue(canPastePairing(pairing, status: .refused))
+    }
+
+    func testRefusalPersistsAcrossLaunchesUntilNewCodeReplacesIt() {
+        withDefaults { defaults, suite in
+            let store = PairingStore(defaults: defaults)
+            store.save(expected.afterRefused())
+            let reopened = PairingStore(defaults: UserDefaults(suiteName: suite)!)
+            let refused = reopened.load()!
+            XCTAssertTrue(refused.refused)
+            XCTAssertFalse(refused.accepted)
+            XCTAssertTrue(canPastePairing(refused, status: .refused))
+            XCTAssertNil(reopened.pair(from: "不是口令", status: .refused))
+            XCTAssertEqual(reopened.load(), refused)
+            let later = "#WC1." + String(repeating: "A", count: 59) + "#"
+            XCTAssertEqual(reopened.pair(from: later, status: .refused), Pairing.parse(later))
+            XCTAssertFalse(store.load()!.refused)
+            XCTAssertFalse(store.load()!.accepted)
+        }
+    }
+
+    func testRefusalDoesNotChangeAcceptedPairing() {
+        withDefaults { defaults, _ in
+            let store = PairingStore(defaults: defaults)
+            let accepted = expected.afterConnected()
+            store.save(accepted.afterRefused())
+            XCTAssertEqual(store.load(), accepted)
+            XCTAssertFalse(store.load()!.refused)
+        }
     }
 
     func testInvalidPasteDoesNotSavePairing() {
