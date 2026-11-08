@@ -24,6 +24,8 @@ End-to-end runs use a separate test agent with its own key, never a family agent
 
 ## Round log
 
+Release 0.2.0 · 2026-11-08: shared Info.plist version 0.2.0 (2); simulator instructions and draft release notes prepared; 71 Swift tests pass, 0 iOS tests executed; Release compilation and simulator erase blocked by sandbox, so zip/SHA256, install/launch screenshot and final release verification await an outside-sandbox rerun; then the owner built the Release simulator zip outside the sandbox (0.2.0 (2), pairing fields empty), installed it on an erased simulator and saw the unpaired screen.
+
 ### Round 1 · 2026-11-07 · M1 implementation, simulator acceptance pending
 
 Read the Android README, ship backlog/round evidence (especially 30–31 and 34a), all app Kotlin sources and the relevant unit tests. The reference checkout is `wechat-look`, one documentation commit beyond `v0.1.8`; its app Kotlin sources have no diff from the tag. No Android files were changed.
