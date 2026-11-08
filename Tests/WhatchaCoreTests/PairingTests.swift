@@ -118,6 +118,13 @@ final class PairingTests: XCTestCase {
         }
     }
 
+    func testPasteHintForSameCodeStillConnecting() {
+        for status in [Status.connecting, .offline] {
+            XCTAssertEqual(pairingPasteHint(expected, status: status, text: code),
+                           "这条口令收到了，正在连接，请稍等")
+        }
+    }
+
     func testPasteHintClearsForDifferentValidCodeAndAcceptedPairing() {
         let later = "#WC1." + String(repeating: "A", count: 59) + "#"
         for status in Status.allCases {

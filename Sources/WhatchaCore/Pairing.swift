@@ -58,6 +58,7 @@ public func pairingPasteHint(_ current: Pairing?, status: Status, text: String) 
     if Pairing.parse(text) != nil && (current?.refused == true || status == .refused) {
         return "这条口令用过了，请孩子重新发一条"
     }
+    if Pairing.parse(text) != nil { return "这条口令收到了，正在连接，请稍等" }
     return "没找到口令。回微信长按孩子发的那条，点「复制」，再回来"
 }
 
