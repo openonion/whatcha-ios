@@ -18,7 +18,7 @@ xcrun simctl launch booted ai.openonion.whatcha
 
 Ask the child to issue a 口令 using the [Android RUNBOOK](https://github.com/openonion/whatcha-android/blob/wechat-look/RUNBOOK.md#the-commands) and send it in WeChat. Copy that message, open 在干嘛, and tap the big 「粘贴」 button. Then type a message and tap 发送.
 
-A real iPhone needs your own Apple signing team and is not covered yet. This release provides source and a simulator build only; there is no App Store or TestFlight distribution. It is text only. Pairing by 口令 and chatting through the public relay were checked end to end on the simulator against a real family agent on 2026-11-08.
+From 0.2.2 the project archives for a real iPhone with an App Store icon, a privacy manifest and the export-compliance key, but it is not signed or submitted yet: building for a device needs your own Apple signing team. Releases so far provide source and a simulator build only; there is no App Store or TestFlight distribution yet. See the [privacy policy](PRIVACY.md). It is text only. Pairing by 口令 and chatting through the public relay were checked end to end on the simulator against a real family agent on 2026-11-08.
 
 Until a 口令 is on the clipboard, the 「粘贴」 button is pale: iOS enables its paste control only when there is something to paste.
 

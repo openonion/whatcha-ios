@@ -8,26 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		0E0487534670EA9560C1E8E5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
-		0E84D1ECA48E296F295B0143 /* AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */; };
 		11A86649037859DE60A01070 /* WhatchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */; };
-		15CEC826DA14727D6E66F4AF /* AppIcon20x20@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */; };
 		1DCB404EB7E555B75BF30EC8 /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
 		30C64A1CB0CC9CDA1B98C67F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
 		44989D00CD4778617387CEEB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
-		46B5B0CEFEBD1E9893483212 /* AppIcon40x40@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */; };
-		493F2B18DF189CCE9B06166F /* AppIcon29x29@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */; };
 		5101CFAB91D49AA3DBDB78D5 /* HeaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38DE41A181DE0BA30D8D3CB /* HeaderTests.swift */; };
 		52F6872F8A4E746FEE684B6E /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C84DEAB665F0AB2E887ACB9 /* ChatStoreTests.swift */; };
 		60FFE7F5EF6CACF193DF71A0 /* Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F28F57173F887F88C50D2D /* Identity.swift */; };
 		683E8820294D357127C53343 /* AgentProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A087FC941B186FF9C0CC5A /* AgentProtocol.swift */; };
-		6A1FA369951AD7CBCE42116B /* AppIcon60x60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */; };
 		7CEE6CFAD3DBAB62A6C351C8 /* SilentIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */; };
 		7E97DD49F750D00C9619F9B6 /* AgentProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */; };
 		8B8501BB1CF27334BC678E91 /* avatar_agent.png in Resources */ = {isa = PBXBuildFile; fileRef = 87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */; };
 		9F7B33AA9037C23033FA6244 /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD585417E56A9D34501F6763 /* Conversation.swift */; };
 		A00380EF7F72B647E307D4FB /* ChatStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9AD42BF6E63B47F990E53F /* ChatStatus.swift */; };
-		B32EF882278A106F68C1EF47 /* AppIcon20x20@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */; };
-		BB9A220426A0760C17A93600 /* AppIcon29x29@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */; };
 		C23FEDB1C48D3C5792FA396F /* avatar_parent.png in Resources */ = {isa = PBXBuildFile; fileRef = BFB90966311F25185A2DDA67 /* avatar_parent.png */; };
 		D1BC3F682276BC56BBE94D6B /* Wire.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCACF20313FCC4E457E40A49 /* Wire.swift */; };
 		D7DC60CD27A7A2F3F537344D /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF93D16BE6B9372F7C9F2BE2 /* ChatStore.swift */; };
@@ -42,9 +35,10 @@
 		F0F85B1D619B54B0BC049A1A /* android-wire-vector.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = 89F56219CE21459A70752F7B /* android-wire-vector.jsonl */; };
 		F591F9675C138519F39D277B /* AvatarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01F13D2A80961B50BEF2010 /* AvatarTests.swift */; };
 		FED48E2A1358668A3652F6BE /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
-		FFD02339E999EB65B79B51C5 /* AppIcon40x40@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */; };
 		F13AD540A8491DA90BA952A2 /* Pairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F13AD540A8491DA90BA952A1 /* Pairing.swift */; };
 		F13AD540A8491DA90BA952A4 /* PairingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F13AD540A8491DA90BA952A3 /* PairingTests.swift */; };
+		3546C4936855210BEE4FC377 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75552047CEBDB5E06F906AA7 /* Assets.xcassets */; };
+		EE6286E268A08698D84F4152 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 63B01DEDDC78D05F79C76EA3 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,7 +76,6 @@
 		0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentProtocolTests.swift; sourceTree = "<group>"; };
 		117250476721A78AE8E7DBFA /* AgentLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentLink.swift; sourceTree = "<group>"; };
 		332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SilentIdentity.swift; sourceTree = "<group>"; };
-		37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon60x60@2x.png"; sourceTree = "<group>"; };
 		39A087FC941B186FF9C0CC5A /* AgentProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentProtocol.swift; sourceTree = "<group>"; };
 		4845FABC1EFA51ECE119229D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4C84DEAB665F0AB2E887ACB9 /* ChatStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
@@ -94,18 +87,13 @@
 		87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = avatar_agent.png; sourceTree = "<group>"; };
 		89F56219CE21459A70752F7B /* android-wire-vector.jsonl */ = {isa = PBXFileReference; includeInIndex = 1; path = "android-wire-vector.jsonl"; sourceTree = "<group>"; };
 		8A15CA3AF65A3DF8CD928D8A /* WireTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WireTests.swift; sourceTree = "<group>"; };
-		8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon20x20@3x.png"; sourceTree = "<group>"; };
 		96EE7354A37A6BC75993386B /* WhatchaCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhatchaCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon29x29@2x.png"; sourceTree = "<group>"; };
 		99395F8F63791F94E7D355BB /* PLAN.md */ = {isa = PBXFileReference; includeInIndex = 1; path = PLAN.md; sourceTree = "<group>"; };
-		99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon40x40@2x.png"; sourceTree = "<group>"; };
 		9E9AD42BF6E63B47F990E53F /* ChatStatus.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStatus.swift; sourceTree = "<group>"; };
 		BA204E2FA69FF987B969AE4F /* Build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Build.xcconfig; sourceTree = "<group>"; };
 		BCACF20313FCC4E457E40A49 /* Wire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Wire.swift; sourceTree = "<group>"; };
 		BF93D16BE6B9372F7C9F2BE2 /* ChatStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		BFB90966311F25185A2DDA67 /* avatar_parent.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = avatar_parent.png; sourceTree = "<group>"; };
-		C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon29x29@3x.png"; sourceTree = "<group>"; };
-		C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon40x40@3x.png"; sourceTree = "<group>"; };
 		CD585417E56A9D34501F6763 /* Conversation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
 		CD848FB7103165364493D359 /* WhatchaAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhatchaAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D38DE41A181DE0BA30D8D3CB /* HeaderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HeaderTests.swift; sourceTree = "<group>"; };
@@ -114,12 +102,12 @@
 		E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WhatchaApp.swift; sourceTree = "<group>"; };
 		E31621978245BDB6A42028B1 /* LaunchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		F01F13D2A80961B50BEF2010 /* AvatarTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AvatarTests.swift; sourceTree = "<group>"; };
-		F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon60x60@3x.png"; sourceTree = "<group>"; };
 		F3F28F57173F887F88C50D2D /* Identity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
 		FAE452D55E1CC974424654AF /* ConversationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConversationTests.swift; sourceTree = "<group>"; };
-		FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "AppIcon20x20@2x.png"; sourceTree = "<group>"; };
 		F13AD540A8491DA90BA952A1 /* Pairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pairing.swift; sourceTree = "<group>"; };
 		F13AD540A8491DA90BA952A3 /* PairingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingTests.swift; sourceTree = "<group>"; };
+		75552047CEBDB5E06F906AA7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		63B01DEDDC78D05F79C76EA3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -206,14 +194,6 @@
 			children = (
 				87657C5AE5FCE2B49DFBEBD4 /* avatar_agent.png */,
 				BFB90966311F25185A2DDA67 /* avatar_parent.png */,
-				FC225C03E9D1FAC02C5151AB /* AppIcon20x20@2x.png */,
-				8BF414D06F74B04FFF0F00CD /* AppIcon20x20@3x.png */,
-				974A7EAC1D3B80F97A1AB867 /* AppIcon29x29@2x.png */,
-				C2565AD2005905A05F595123 /* AppIcon29x29@3x.png */,
-				99CC3C4C7CBF335C6FFED46F /* AppIcon40x40@2x.png */,
-				C7E212678B548AC1A1267EA8 /* AppIcon40x40@3x.png */,
-				37B293E3FB4309A5D6724247 /* AppIcon60x60@2x.png */,
-				F0AD4DFCE9481084744D2FDB /* AppIcon60x60@3x.png */,
 			);
 			name = Resources;
 			path = Resources;
@@ -259,6 +239,8 @@
 				332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */,
 				E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */,
 				7FEE3A0B9139D25E37692995 /* Resources */,
+				75552047CEBDB5E06F906AA7 /* Assets.xcassets */,
+				63B01DEDDC78D05F79C76EA3 /* PrivacyInfo.xcprivacy */,
 				4845FABC1EFA51ECE119229D /* Info.plist */,
 				BA204E2FA69FF987B969AE4F /* Build.xcconfig */,
 			);
@@ -441,14 +423,8 @@
 			files = (
 				8B8501BB1CF27334BC678E91 /* avatar_agent.png in Resources */,
 				C23FEDB1C48D3C5792FA396F /* avatar_parent.png in Resources */,
-				B32EF882278A106F68C1EF47 /* AppIcon20x20@2x.png in Resources */,
-				15CEC826DA14727D6E66F4AF /* AppIcon20x20@3x.png in Resources */,
-				493F2B18DF189CCE9B06166F /* AppIcon29x29@2x.png in Resources */,
-				BB9A220426A0760C17A93600 /* AppIcon29x29@3x.png in Resources */,
-				FFD02339E999EB65B79B51C5 /* AppIcon40x40@2x.png in Resources */,
-				46B5B0CEFEBD1E9893483212 /* AppIcon40x40@3x.png in Resources */,
-				6A1FA369951AD7CBCE42116B /* AppIcon60x60@2x.png in Resources */,
-				0E84D1ECA48E296F295B0143 /* AppIcon60x60@3x.png in Resources */,
+				3546C4936855210BEE4FC377 /* Assets.xcassets in Resources */,
+				EE6286E268A08698D84F4152 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -566,6 +542,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BA204E2FA69FF987B969AE4F /* Build.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -576,8 +553,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatcha;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -595,8 +572,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchaapptests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Whatcha.app/Whatcha";
@@ -665,8 +642,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchatests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
@@ -684,8 +661,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchauitests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = Whatcha;
@@ -710,9 +687,9 @@
 				MACH_O_TYPE = staticlib;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchacore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = iphonesimulator;
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -798,9 +775,9 @@
 				MACH_O_TYPE = staticlib;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchacore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = iphonesimulator;
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
@@ -817,8 +794,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchatests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -836,8 +813,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchaapptests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Whatcha.app/Whatcha";
@@ -856,8 +833,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatchauitests;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = Whatcha;
@@ -869,6 +846,7 @@
 			baseConfigurationReference = BA204E2FA69FF987B969AE4F /* Build.xcconfig */;
 			buildSettings = {
 				AGENT_ADDRESS = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -880,8 +858,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ai.openonion.whatcha;
-				SDKROOT = iphonesimulator;
-				SUPPORTED_PLATFORMS = iphonesimulator;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
