@@ -6,6 +6,7 @@ private let chatBackground = Color(red: 237/255, green: 237/255, blue: 237/255)
 private let barBackground = Color(red: 247/255, green: 247/255, blue: 247/255)
 private let parentGreen = Color(red: 149/255, green: 236/255, blue: 105/255)
 private let wechatGreen = Color(red: 7/255, green: 193/255, blue: 96/255)
+private let privacyPolicyURL = URL(string: "https://github.com/openonion/whatcha-ios/blob/main/PRIVACY.md")!
 
 struct ChatScreen: View {
     @ObservedObject var model: ChatModel
@@ -51,6 +52,8 @@ struct ChatScreen: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    Link("隐私政策", destination: privacyPolicyURL)
+                        .font(.footnote)
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity)
@@ -64,9 +67,19 @@ struct ChatScreen: View {
             Text(model.header)
                 .font(.system(size: bodySize, weight: .medium))
                 .frame(maxWidth: .infinity, minHeight: 60)
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 60)
                 .padding(.vertical, 4)
                 .accessibilityAddTraits(.isHeader)
+                .overlay(alignment: .trailing) {
+                    Menu {
+                        Link("隐私政策", destination: privacyPolicyURL)
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.body)
+                            .frame(width: 60, height: 60)
+                    }
+                    .accessibilityLabel("关于")
+                }
             Divider()
             if let trouble = statusText(model.status) { statusStrip(trouble) }
             if model.lines.isEmpty { emptyChat } else { conversation }

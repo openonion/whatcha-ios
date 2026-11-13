@@ -1,6 +1,6 @@
 # Whatcha · 在干嘛
 
-One iPhone screen for a parent to ask 小乐, their child's AI agent, what the child is doing. M1 ports the Android WeChat-style text conversation to SwiftUI, iOS 17+, through the public relay. No menus or settings.
+One iPhone screen for a parent to ask 小乐, their child's AI agent, what the child is doing. M1 ports the Android WeChat-style text conversation to SwiftUI, iOS 17+, through the public relay.
 
 Open `Whatcha.xcodeproj`. A parent copies the child's 口令 from WeChat, returns to the app and taps the native 「粘贴」 button. The button is the system UIPasteControl, so the app reads text only after that tap and iOS asks no permission. The app saves the decoded pairing in UserDefaults and makes it permanent once the agent accepts the phone. A refused, unaccepted pairing returns to the paste screen for a fresh code and stops retrying. Accepted pairings cannot be replaced. The phone creates its own Ed25519 identity in Keychain on first launch.
 
@@ -18,7 +18,7 @@ xcrun simctl launch booted ai.openonion.whatcha
 
 Ask the child to issue a 口令 using the [Android RUNBOOK](https://github.com/openonion/whatcha-android/blob/wechat-look/RUNBOOK.md#the-commands) and send it in WeChat. Copy that message, open 在干嘛, and tap the big 「粘贴」 button. Then type a message and tap 发送.
 
-From 0.2.2 the project archives for a real iPhone with an App Store icon, a privacy manifest and the export-compliance key, but it is not signed or submitted yet: building for a device needs your own Apple signing team. Releases so far provide source and a simulator build only; there is no App Store or TestFlight distribution yet. See the [privacy policy](PRIVACY.md). It is text only. Pairing by 口令 and chatting through the public relay were checked end to end on the simulator against a real family agent on 2026-11-08.
+From 0.2.2 the project archives for a real iPhone with an App Store icon, a privacy manifest and the export-compliance key. Building for a device needs your own Apple signing team. GitHub releases provide source and a simulator build. The [privacy policy](PRIVACY.md) is also available on the pairing screen and from the info button in chat. Pairing by 口令 and chatting through the public relay were checked end to end on the simulator against a real family agent on 2026-11-08.
 
 Until a 口令 is on the clipboard, the 「粘贴」 button is pale: iOS enables its paste control only when there is something to paste.
 
