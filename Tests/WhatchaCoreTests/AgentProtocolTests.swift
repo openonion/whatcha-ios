@@ -2,9 +2,9 @@ import XCTest
 @testable import WhatchaCore
 
 final class AgentProtocolTests: XCTestCase {
-    private func link(invite: String? = "test-invite") -> AgentProtocol {
+    private func link(invite: String? = "test-invite", sessionID: String? = "saved") -> AgentProtocol {
         let pairing = Pairing(agent: "0xagent", invite: invite)
-        return AgentProtocol(pairing: pairing, wire: Wire(me: Identity(), agent: pairing.agent), sessionID: "saved")
+        return AgentProtocol(pairing: pairing, wire: Wire(me: Identity(), agent: pairing.agent), sessionID: sessionID)
     }
     func testResumesSavedSessionOnOpen() throws {
         let value = try JSONSerialization.jsonObject(with: Data(link().opened().utf8)) as! Frame
@@ -77,5 +77,18 @@ final class AgentProtocolTests: XCTestCase {
     func testMalformedJSONThrows() {
         var link = link()
         XCTAssertThrowsError(try link.receive("bad json"))
+    }
+    func testNonObjectJSONThrows() {
+        var link = link()
+        XCTAssertThrowsError(try link.receive("[]"))
+    }
+    func testConnectedWithoutAnySessionIDThrows() {
+        var link = link(sessionID: nil)
+        XCTAssertThrowsError(try link.receive(#"{"type":"CONNECTED"}"#))
+    }
+    func testConnectedWithoutSessionIDUsesSavedSession() throws {
+        var link = link()
+        XCTAssertEqual(try link.receive(#"{"type":"CONNECTED"}"#).event,
+                       .connected("saved", running: false, history: []))
     }
 }

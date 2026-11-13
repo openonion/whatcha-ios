@@ -12,6 +12,11 @@ public struct LinkUpdate {
 }
 
 public struct AgentProtocol {
+    private enum FrameError: Error {
+        case expectedObject
+        case missingSessionID
+    }
+
     let pairing: Pairing
     let wire: Wire
     public private(set) var sessionID: String?
@@ -21,9 +26,11 @@ public struct AgentProtocol {
     }
     public func opened() -> String { wire.connect(sessionID) }
     public mutating func receive(_ text: String) throws -> LinkUpdate {
-        let frame = try JSONSerialization.jsonObject(with: Data(text.utf8)) as! Frame
+        guard let frame = try JSONSerialization.jsonObject(with: Data(text.utf8)) as? Frame else {
+            throw FrameError.expectedObject
+        }
         switch frame["type"] as? String {
-        case "CONNECTED": return connected(frame)
+        case "CONNECTED": return try connected(frame)
         case "ONBOARD_REQUIRED":
             guard let invite = pairing.invite else { return refused() }
             return LinkUpdate(outgoing: wire.onboard(invite))
@@ -36,12 +43,15 @@ public struct AgentProtocol {
         }
     }
 
-    private mutating func connected(_ frame: Frame) -> LinkUpdate {
-        sessionID = frame["session_id"] as? String ?? sessionID
+    private mutating func connected(_ frame: Frame) throws -> LinkUpdate {
+        guard let connectedSessionID = frame["session_id"] as? String ?? sessionID else {
+            throw FrameError.missingSessionID
+        }
+        sessionID = connectedSessionID
         let items = (frame["chat_items"] as? [Frame] ?? []).filter {
             $0["type"] as? String == "user" || $0["type"] as? String == "agent"
         }.map { HistoryItem($0["type"] as? String == "user", $0["content"] as? String ?? "") }
-        return LinkUpdate(event: .connected(sessionID!, running: frame["status"] as? String == "running", history: items))
+        return LinkUpdate(event: .connected(connectedSessionID, running: frame["status"] as? String == "running", history: items))
     }
 
     private func error(_ message: String) -> LinkUpdate {

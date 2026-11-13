@@ -70,7 +70,10 @@ final class AgentLink {
 
     private func received(_ message: URLSessionWebSocketTask.Message, on task: URLSessionWebSocketTask) {
         guard case .string(let text) = message else { return }
-        let update = try! protocolState.receive(text)
+        guard let update = try? protocolState.receive(text) else {
+            disconnect(task)
+            return
+        }
         if let outgoing = update.outgoing { sendFrame(outgoing, on: task) }
         if let event = update.event { onEvent?(event) }
         if update.close { disconnect(task) }
