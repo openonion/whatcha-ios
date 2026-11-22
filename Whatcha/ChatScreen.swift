@@ -261,7 +261,7 @@ struct ChatScreen: View {
             .padding(.horizontal, 12)
             .frame(minHeight: 44)
             HStack(alignment: .bottom, spacing: 8) {
-                TextField("", text: $draft, axis: .vertical)
+                TextField("写消息", text: $draft, axis: .vertical)
                     .lineLimit(1...4)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 13)
