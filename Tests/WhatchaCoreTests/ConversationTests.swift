@@ -73,6 +73,29 @@ final class ConversationTests: XCTestCase {
         XCTAssertEqual(after.count, 3)
         XCTAssertEqual(after.last?.delivery, .queued)
     }
+    func testNewTurnCanRepeatThePreviousAnswer() {
+        let answer = Line(fromParent: false, text: "在改软件", at: 1)
+        let lines = [asked(.done), answer, asked(.sent)]
+        let items = [HistoryItem(true, "在干嘛"), HistoryItem(false, answer.text),
+                     HistoryItem(true, "在干嘛"), HistoryItem(false, answer.text)]
+        let after = lines.afterReconnect(agentRunning: false, history: items, now: 5)
+        XCTAssertEqual(after.count, 4)
+        XCTAssertEqual(after[2].delivery, .done)
+        XCTAssertEqual(after.last?.text, answer.text)
+        XCTAssertNil(after.nextToSend())
+        XCTAssertEqual(after.afterReconnect(agentRunning: false, history: items, now: 6), after)
+    }
+    func testDifferentQuestionCanReceiveTheSameAnswer() {
+        let answer = Line(fromParent: false, text: "在改软件", at: 1)
+        let lines = [asked("忙什么", .done), answer, asked(.sent)]
+        let items = [HistoryItem(true, "忙什么"), HistoryItem(false, answer.text),
+                     HistoryItem(true, "在干嘛"), HistoryItem(false, answer.text)]
+        let after = lines.afterReconnect(agentRunning: false, history: items, now: 5)
+        XCTAssertEqual(after.count, 4)
+        XCTAssertEqual(after[2].delivery, .done)
+        XCTAssertEqual(after.last?.text, answer.text)
+        XCTAssertNil(after.nextToSend())
+    }
     func testFailedRunIsAskedAgain() {
         XCTAssertEqual([asked(.sent)].afterReconnect(agentRunning: false, history: Array(history.dropLast()), now: 5)[0].delivery, .queued)
     }

@@ -3,7 +3,8 @@ import Foundation
 public struct ChatSnapshot: Codable, Equatable {
     public var lines: [Line] = []
     public var sessionID: String?
-    public var title = "小乐"
+    public var title = "孩子"
+    public var childName: String?
     public init() {}
 }
 

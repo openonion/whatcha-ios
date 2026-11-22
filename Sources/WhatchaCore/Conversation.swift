@@ -26,7 +26,7 @@ public struct HistoryItem: Equatable {
     }
 }
 
-public let agentFailed = "小乐这会儿出了点问题，没能回答。点一下红色的感叹号，再发一次。"
+public let agentFailed = "这条消息暂时没收到回复。点一下红色的感叹号，再发一次。"
 
 // The host accepts one INPUT per turn; replies have no message ID.
 public extension Array where Element == Line {
@@ -68,8 +68,17 @@ public extension Array where Element == Line {
         guard let waiting = first(where: { $0.delivery == .sent }),
               let asked = history.lastIndex(where: { $0.fromParent }),
               history[asked].text == waiting.text,
-              let answer = history.dropFirst(asked + 1).last?.text,
-              answer != last(where: { !$0.fromParent })?.text else { return nil }
+              let answer = history.dropFirst(asked + 1).last?.text else { return nil }
+        if answer == last(where: { !$0.fromParent })?.text {
+            // Equal reply text does not identify a turn: the demo and real agents
+            // can answer multiple questions identically. Require a newer question
+            // occurrence before recovering an otherwise indistinguishable reply.
+            let remoteQuestions = history.filter { $0.fromParent && $0.text == waiting.text }.count
+            let completedQuestions = filter {
+                $0.fromParent && $0.delivery == .done && $0.text == waiting.text
+            }.count
+            guard remoteQuestions > completedQuestions else { return nil }
+        }
         return answer
     }
 
