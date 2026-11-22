@@ -10,6 +10,7 @@ private let privacyPolicyURL = URL(string: "https://github.com/openonion/whatcha
 
 struct ChatScreen: View {
     @ObservedObject var model: ChatModel
+    let switchRole: () -> Void
     @State private var draft = ""
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
@@ -54,6 +55,7 @@ struct ChatScreen: View {
                     }
                     Link("隐私政策", destination: privacyPolicyURL)
                         .font(.footnote)
+                    Button("选择身份", action: switchRole).font(.footnote)
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity)
@@ -73,6 +75,7 @@ struct ChatScreen: View {
                 .overlay(alignment: .trailing) {
                     Menu {
                         Link("隐私政策", destination: privacyPolicyURL)
+                        Button("选择身份", action: switchRole)
                     } label: {
                         Image(systemName: "info.circle")
                             .font(.body)
@@ -241,7 +244,7 @@ private struct MessageRow: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
                         .fixedSize(horizontal: false, vertical: true)
-                        .background(line.fromParent ? parentGreen : .white,
+                        .background(line.fromParent ? parentGreen : Color(red: 224/255, green: 236/255, blue: 250/255),
                                     in: RoundedRectangle(cornerRadius: 6))
                         .accessibilityLabel("\(line.fromParent ? "我" : agentName)：\(line.text)")
                 }
@@ -272,7 +275,7 @@ private struct MessageRow: View {
 
     private var tail: some View {
         BubbleTail(pointsLeft: !line.fromParent)
-            .fill(line.fromParent ? parentGreen : .white)
+            .fill(line.fromParent ? parentGreen : Color(red: 224/255, green: 236/255, blue: 250/255))
             .frame(width: 8, height: 16)
             .padding(.top, 22)
             .padding(line.fromParent ? .trailing : .leading, 4)

@@ -16,6 +16,16 @@ Done when a parent on an iPhone simulator types 「在干嘛」 and 小乐 (the 
 
 Not in M1: voice, photos, read aloud, QR pairing, push, the child/admin side.
 
+## Scope reconciliation · 2026-11-22
+
+The owner expects child-side pairing and a child-visible message/conversation
+list. These are absent from the historical M1 scope above and from the current
+iOS implementation. Passing the parent chat demo is not acceptance of the
+complete intended product. [FUNCTIONAL-AUDIT.md](FUNCTIONAL-AUDIT.md) records
+the code, upstream Android business logic, existing tests and missing flows.
+Its proposed acceptance items still need to be reconciled with the intended
+child product/role; no child UI is claimed implemented or tested.
+
 ## Rules
 
 Commit only to `main` of this repo, English messages, no Co-Authored-By. No try/catch fallbacks that hide errors (let it crash); no Utils/Helpers files; short functions; YAGNI. No real names anywhere (README, code, tests, screenshots, commits). Never touch ~/.co or any signing identity. Do not push; the owner pushes after checking.

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EDD5DA000000000000000002 /* FamilyAdminScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD5DA000000000000000001; };
 		0E0487534670EA9560C1E8E5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE9C2943313766C656FF26BF /* Foundation.framework */; };
 		11A86649037859DE60A01070 /* WhatchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */; };
 		1DCB404EB7E555B75BF30EC8 /* WhatchaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EE7354A37A6BC75993386B /* WhatchaCore.framework */; };
@@ -73,6 +74,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EDD5DA000000000000000001 /* FamilyAdminScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyAdminScreen.swift; sourceTree = "<group>"; };
 		0365B322DBC2BA3FF813F448 /* AgentProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentProtocolTests.swift; sourceTree = "<group>"; };
 		117250476721A78AE8E7DBFA /* AgentLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentLink.swift; sourceTree = "<group>"; };
 		332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SilentIdentity.swift; sourceTree = "<group>"; };
@@ -238,6 +240,7 @@
 				61E6218A2E3C9D6BD3B8D1A0 /* ChatScreen.swift */,
 				332EBF9E4A1DAF13ED7ECF62 /* SilentIdentity.swift */,
 				E13BCACD26869F7E3405EEB6 /* WhatchaApp.swift */,
+				EDD5DA000000000000000001 /* FamilyAdminScreen.swift */,
 				7FEE3A0B9139D25E37692995 /* Resources */,
 				75552047CEBDB5E06F906AA7 /* Assets.xcassets */,
 				63B01DEDDC78D05F79C76EA3 /* PrivacyInfo.xcprivacy */,
@@ -470,6 +473,7 @@
 				E56C56B705206B8EFDE6A5F8 /* ChatScreen.swift in Sources */,
 				7CEE6CFAD3DBAB62A6C351C8 /* SilentIdentity.swift in Sources */,
 				11A86649037859DE60A01070 /* WhatchaApp.swift in Sources */,
+				EDD5DA000000000000000002 /* FamilyAdminScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

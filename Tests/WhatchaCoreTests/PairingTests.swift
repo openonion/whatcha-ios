@@ -7,6 +7,12 @@ final class PairingTests: XCTestCase {
         agent: "0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         invite: "ICEiIyQlJicoKSor")
 
+    func testChildNameFromSharedInvitation() {
+        XCTAssertEqual(Pairing.childName(in: "孩子名字： 小雨 \n家人口令"), "小雨")
+        XCTAssertNil(Pairing.childName(in: "只有口令"))
+        XCTAssertNil(Pairing.childName(in: "孩子名字：" + String(repeating: "雨", count: 41)))
+    }
+
     func testValidCodeDecodesAddressAndToken() throws {
         let pairing = try XCTUnwrap(Pairing.parse(code))
         XCTAssertEqual(pairing, expected)

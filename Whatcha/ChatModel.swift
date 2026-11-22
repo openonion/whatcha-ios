@@ -23,7 +23,9 @@ final class ChatModel: ObservableObject {
     init() {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         store = ChatStore(url: directory.appendingPathComponent("chat.json"))
-        snapshot = store.load()
+        var saved = store.load()
+        if saved.title == "小乐" { saved.title = "孩子" }
+        snapshot = saved
         identity = Identity.loadFromKeychain()
         status = .unpaired
         #if DEBUG
@@ -48,6 +50,8 @@ final class ChatModel: ObservableObject {
               let pairing = pairingStore.pair(from: text, status: status),
               pairing != self.pairing else { return }
         snapshot.sessionID = nil
+        snapshot.childName = Pairing.childName(in: text)
+        snapshot.title = snapshot.childName ?? "孩子"
         save()
         start(pairing)
     }
@@ -112,7 +116,8 @@ final class ChatModel: ObservableObject {
             deadline = nil
             reconnectDelay = 5
             status = .online
-        case .profile(let name): snapshot.title = name
+        case .profile(let name):
+            snapshot.title = snapshot.childName ?? (["小乐", "家人"].contains(name) ? "孩子" : name)
         case .reply(let text):
             snapshot.lines = lines.answerOldest() + [Line(fromParent: false, text: text, at: now)]
         case .error(let message): snapshot.lines = lines.failOldest(message)

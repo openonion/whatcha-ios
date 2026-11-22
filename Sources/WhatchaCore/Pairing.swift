@@ -40,6 +40,18 @@ public struct Pairing: Codable, Equatable {
             .replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_")
         return Pairing(agent: "0x" + bytes.prefix(32).hex, invite: token)
     }
+
+    public static func childName(in text: String) -> String? {
+        for line in text.split(whereSeparator: \.isNewline) {
+            let prefix = "孩子名字："
+            guard line.hasPrefix(prefix) else { continue }
+            let name = line.dropFirst(prefix.count).trimmingCharacters(in: .whitespaces)
+            if (1...40).contains(name.count), name.unicodeScalars.allSatisfy({
+                !CharacterSet.controlCharacters.contains($0)
+            }) { return name }
+        }
+        return nil
+    }
 }
 
 public func canPastePairing(_ current: Pairing?, status: Status) -> Bool {

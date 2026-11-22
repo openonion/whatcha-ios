@@ -20,6 +20,12 @@ Ask the child to issue a 口令 using the [Android RUNBOOK](https://github.com/o
 
 From 0.2.2 the project archives for a real iPhone with an App Store icon, a privacy manifest and the export-compliance key. Building for a device needs your own Apple signing team. GitHub releases provide source and a simulator build. The [privacy policy](PRIVACY.md) is also available on the pairing screen and from the info button in chat. Pairing by 口令 and chatting through the public relay were checked end to end on the simulator against a real family agent on 2026-11-08.
 
+For the 0.2.2 App Review follow-up and the required physical-iPhone recording,
+see [APP-REVIEW.md](APP-REVIEW.md). The uploaded build was rejected for missing
+review information; local fixes do not change that submitted binary.
+The [functional audit](FUNCTIONAL-AUDIT.md) distinguishes the implemented
+parent client from missing child-side flows and unverified backend behavior.
+
 Until a 口令 is on the clipboard, the 「粘贴」 button is pale: iOS enables its paste control only when there is something to paste.
 
 ## Build and test
