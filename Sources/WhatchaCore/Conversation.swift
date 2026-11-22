@@ -9,12 +9,27 @@ public struct Line: Codable, Equatable, Identifiable {
     public var at: Int64
     public var delivery: Delivery = .done
     public var childSequence: Int64?
+    public var attachment: ChatAttachment?
 
-    public init(fromParent: Bool, text: String, at: Int64, delivery: Delivery = .done) {
+    public init(fromParent: Bool, text: String, at: Int64, delivery: Delivery = .done,
+                attachment: ChatAttachment? = nil) {
         self.fromParent = fromParent
         self.text = text
         self.at = at
         self.delivery = delivery
+        self.attachment = attachment
+    }
+}
+
+public enum ChatAttachment: Codable, Equatable {
+    case photo(Data)
+    case voice(Data, seconds: Int)
+
+    public var prompt: String {
+        switch self {
+        case .photo: "[照片]"
+        case .voice(_, let seconds): "[语音 \(seconds)秒]"
+        }
     }
 }
 

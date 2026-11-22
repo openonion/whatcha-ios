@@ -30,9 +30,16 @@ public struct Wire {
         return canonical(frame)
     }
 
-    public func input(_ prompt: String) -> String {
-        let payload: Frame = ["type": "INPUT", "input_id": nextID(), "prompt": prompt,
+    public func input(_ prompt: String, attachment: ChatAttachment? = nil) -> String {
+        var payload: Frame = ["type": "INPUT", "input_id": nextID(), "prompt": prompt,
                               "timestamp": now(), "nonce": nextID(), "to": agent]
+        switch attachment {
+        case .photo(let data):
+            payload["images"] = ["data:image/jpeg;base64," + data.base64EncodedString()]
+        case .voice(let data, _):
+            payload["files"] = [["name": "voice.m4a", "data": "data:audio/mp4;base64," + data.base64EncodedString()]]
+        case nil: break
+        }
         var frame = payload
         frame["payload"] = payload
         frame["from"] = me.address

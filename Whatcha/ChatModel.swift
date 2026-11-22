@@ -78,10 +78,10 @@ final class ChatModel: ObservableObject {
         open()
     }
 
-    func send(_ text: String) {
+    func send(_ text: String, attachment: ChatAttachment? = nil) {
         let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, link != nil else { return }
-        snapshot.lines.append(Line(fromParent: true, text: prompt, at: now, delivery: .queued))
+        snapshot.lines.append(Line(fromParent: true, text: prompt, at: now, delivery: .queued, attachment: attachment))
         save()
         sendQueued()
     }
@@ -157,7 +157,8 @@ final class ChatModel: ObservableObject {
     }
 
     private func sendQueued() {
-        guard status == .online, let line = lines.nextToSend(), link!.send(line.text) else { return }
+        guard status == .online, let line = lines.nextToSend(),
+              let link, link.send(line.text, attachment: line.attachment) else { return }
         snapshot.lines = lines.markSent(line)
         save()
     }

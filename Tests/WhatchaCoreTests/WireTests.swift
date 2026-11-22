@@ -4,6 +4,20 @@ import XCTest
 
 final class WireTests: XCTestCase {
     private let me = try! Identity(seed: Data(0..<32))
+
+    func testMediaIsIncludedInTheSignedInput() throws {
+        let audio = ChatAttachment.voice(Data([1, 2]), seconds: 3)
+        let photo = ChatAttachment.photo(Data([4, 5]))
+        for (attachment, field) in [(audio, "files"), (photo, "images")] {
+            let message = try frame(wire().input(attachment.prompt, attachment: attachment))
+            let payload = try XCTUnwrap(message["payload"] as? Frame)
+            let signature = try XCTUnwrap(message["signature"] as? String)
+            XCTAssertNotNil(payload[field])
+            XCTAssertEqual(payload["prompt"] as? String, attachment.prompt)
+            let key = try Curve25519.Signing.PublicKey(rawRepresentation: me.seedPublicKey)
+            XCTAssertTrue(key.isValidSignature(unhex(signature), for: Data(canonical(payload).utf8)))
+        }
+    }
     private func wire(nextID: @escaping () -> String = { "test-id" }) -> Wire {
         Wire(me: me, agent: "0xagent", now: { 1_700_000_000 }, nextID: nextID)
     }

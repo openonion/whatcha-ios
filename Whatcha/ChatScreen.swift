@@ -1,3 +1,6 @@
+import AVFoundation
+import ImageIO
+import PhotosUI
 import SwiftUI
 import UIKit
 import WhatchaCore
@@ -12,6 +15,10 @@ struct ChatScreen: View {
     @ObservedObject var model: ChatModel
     let switchRole: () -> Void
     @State private var draft = ""
+    @StateObject private var media = ChatMedia()
+    @State private var selection: PhotosPickerItem?
+    @State private var preview: Data?
+    @State private var previewIsDraft = false
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     @ScaledMetric private var bodySize: CGFloat = 24
@@ -24,10 +31,49 @@ struct ChatScreen: View {
         .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
         .background(chatBackground.ignoresSafeArea())
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { typing = false }
+            if phase != .active {
+                typing = false
+                media.cancelRecording()
+            }
         }
         .task(id: scenePhase == .active ? model.childMessagesOrigin : nil) {
             if scenePhase == .active { await model.followChildMessages() }
+        }
+        .task(id: selection) {
+            guard let selection else { return }
+            do {
+                guard let data = try await selection.loadTransferable(type: Data.self),
+                      let jpeg = ChatMedia.photo(data) else { throw CocoaError(.fileReadCorruptFile) }
+                try Task.checkCancellation()
+                previewIsDraft = true
+                preview = jpeg
+            } catch is CancellationError {
+                return
+            } catch {
+                media.error = "无法读取这张照片，请重新选择。"
+            }
+            self.selection = nil
+        }
+        .sheet(isPresented: Binding(get: { preview != nil }, set: { if !$0 { preview = nil } })) {
+            NavigationStack {
+                Group {
+                    if let preview, let image = UIImage(data: preview) {
+                        Image(uiImage: image).resizable().scaledToFit().accessibilityLabel("照片预览")
+                    }
+                }
+                .navigationTitle("照片预览")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("取消") { preview = nil } }
+                    if previewIsDraft {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("发送照片") {
+                                if let preview { sendAttachment(.photo(preview)) }
+                                preview = nil
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -122,7 +168,15 @@ struct ChatScreen: View {
                         ForEach(Array(model.lines.enumerated()), id: \.element.id) { index, line in
                             VStack(spacing: 16) {
                                 if showsTime(index) { timeLabel(line.at) }
-                                MessageRow(line: line, agentName: model.snapshot.title) { model.retry(line) }
+                                MessageRow(line: line, agentName: model.snapshot.title,
+                                           retry: { model.retry(line) }, play: {
+                                               if case .photo(let data) = line.attachment {
+                                                   previewIsDraft = false
+                                                   preview = data
+                                               } else {
+                                                   media.play(line)
+                                               }
+                                           })
                             }
                         }
                         Color.clear.frame(height: 1).id("bottom")
@@ -150,6 +204,28 @@ struct ChatScreen: View {
     private var composer: some View {
         VStack(spacing: 0) {
             Divider()
+            if let error = media.error {
+                Text(error).font(.footnote).foregroundStyle(.red).padding(.horizontal, 12)
+            }
+            HStack(spacing: 20) {
+                if media.recording {
+                    Button("取消录音") { media.cancelRecording() }
+                    Button("发送语音") {
+                        if let attachment = media.finishRecording() { sendAttachment(attachment) }
+                    }
+                } else {
+                    Button { Task { await media.startRecording() } } label: {
+                        Label("录音", systemImage: "mic")
+                    }
+                    PhotosPicker(selection: $selection, matching: .images) {
+                        Label("照片", systemImage: "photo")
+                    }
+                }
+                Spacer()
+            }
+            .font(.body)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 44)
             HStack(alignment: .bottom, spacing: 8) {
                 TextField("", text: $draft, axis: .vertical)
                     .lineLimit(1...4)
@@ -177,6 +253,10 @@ struct ChatScreen: View {
             .padding(.vertical, 10)
         }
         .background(barBackground)
+    }
+
+    private func sendAttachment(_ attachment: ChatAttachment) {
+        model.send(attachment.prompt, attachment: attachment)
     }
 }
 
@@ -233,6 +313,7 @@ private struct MessageRow: View {
     let line: Line
     let agentName: String
     let retry: () -> Void
+    let play: () -> Void
     @ScaledMetric private var bodySize: CGFloat = 24
 
     var body: some View {
@@ -242,7 +323,7 @@ private struct MessageRow: View {
                 if !line.fromParent { avatar; tail }
                 HStack(spacing: 0) {
                     if line.fromParent { deliveryMark }
-                    Text(line.text)
+                    bubble
                         .lineSpacing(bodySize / 6)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
@@ -264,6 +345,23 @@ private struct MessageRow: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
+        }
+    }
+
+    @ViewBuilder private var bubble: some View {
+        if case .photo(let data) = line.attachment, let image = UIImage(data: data) {
+            Button(action: play) {
+                Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 230)
+            }
+            .buttonStyle(.plain).accessibilityHint("查看照片")
+        } else if case .voice(_, let seconds) = line.attachment {
+            Button(action: play) { Label("\(seconds) 秒", systemImage: "waveform") }
+                .buttonStyle(.plain).accessibilityHint("播放或停止语音")
+        } else if !line.fromParent {
+            Button(action: play) { Text(line.text).multilineTextAlignment(.leading) }
+                .buttonStyle(.plain).accessibilityHint("朗读或停止")
+        } else {
+            Text(line.text)
         }
     }
 
@@ -318,6 +416,117 @@ private struct MessageRow: View {
                 .frame(width: 60, height: 60)
             }
         }
+    }
+}
+
+@MainActor
+private final class ChatMedia: ObservableObject {
+    @Published private(set) var recording = false
+    @Published var error: String?
+    private var recorder: AVAudioRecorder?
+    private var audioPlayer: AVAudioPlayer?
+    private let synthesizer = AVSpeechSynthesizer()
+    private var playingID: UUID?
+    private var started = Date()
+    private var requestingPermission = false
+
+    func startRecording() async {
+        guard !recording, !requestingPermission else { return }
+        requestingPermission = true
+        defer { requestingPermission = false }
+        error = nil
+        guard await AVAudioApplication.requestRecordPermission() else {
+            error = "无法录音。请在设置中允许「在干嘛」使用麦克风。"
+            return
+        }
+        stopPlayback()
+        let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).m4a")
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .default, options: .defaultToSpeaker)
+            try session.setActive(true)
+            let newRecorder = try AVAudioRecorder(url: url, settings: [
+                AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 16_000,
+                AVNumberOfChannelsKey: 1, AVEncoderBitRateKey: 32_000
+            ])
+            guard newRecorder.record(forDuration: 30) else { throw CocoaError(.fileWriteUnknown) }
+            recorder = newRecorder
+            started = Date()
+            recording = true
+        } catch {
+            try? FileManager.default.removeItem(at: url)
+            releaseAudioSession()
+            self.error = "录音未开始，请重试。"
+        }
+    }
+
+    func finishRecording() -> ChatAttachment? {
+        guard let recorder else { return nil }
+        let duration = min(30, Date().timeIntervalSince(started))
+        stopRecording()
+        defer { try? FileManager.default.removeItem(at: recorder.url) }
+        guard duration >= 1, let data = try? Data(contentsOf: recorder.url), !data.isEmpty else {
+            error = "录音太短或无法读取，请再录一次。"
+            return nil
+        }
+        return .voice(data, seconds: Int(duration.rounded()))
+    }
+
+    func cancelRecording() {
+        guard let recorder else { return }
+        stopRecording()
+        try? FileManager.default.removeItem(at: recorder.url)
+    }
+
+    private func stopRecording() {
+        recorder?.stop()
+        recorder = nil
+        recording = false
+        releaseAudioSession()
+    }
+
+    private func releaseAudioSession() {
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    }
+
+    func play(_ line: Line) {
+        guard !recording else { return }
+        let tapStops = playingID == line.id && (synthesizer.isSpeaking || audioPlayer?.isPlaying == true)
+        stopPlayback()
+        guard !tapStops else { return }
+        playingID = line.id
+        if case .voice(let data, _) = line.attachment {
+            do {
+                audioPlayer = try AVAudioPlayer(data: data)
+                audioPlayer?.play()
+            } catch {
+                self.error = "无法播放这条语音。"
+            }
+        } else {
+            let utterance = AVSpeechUtterance(string: line.text)
+            utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
+            synthesizer.speak(utterance)
+        }
+    }
+
+    private func stopPlayback() {
+        audioPlayer?.stop()
+        synthesizer.stopSpeaking(at: .immediate)
+        playingID = nil
+    }
+
+    nonisolated static func photo(_ data: Data) -> Data? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: 1_000
+              ] as CFDictionary),
+              let jpeg = UIImage(cgImage: image).jpegData(compressionQuality: 0.7), jpeg.count < 512_000 else {
+            return nil
+        }
+        return jpeg
     }
 }
 
