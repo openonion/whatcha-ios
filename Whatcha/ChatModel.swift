@@ -19,6 +19,7 @@ final class ChatModel: ObservableObject {
     var lines: [Line] { snapshot.lines }
     var header: String { headerTitle(snapshot.title, lines: lines, status: status) }
     var needsPairing: Bool { canPastePairing(pairing, status: status) }
+    var childMessagesOrigin: URL? { pairing?.accepted == true ? pairing?.familyOrigin : nil }
 
     init() {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -49,7 +50,7 @@ final class ChatModel: ObservableObject {
         guard pairingError == nil,
               let pairing = pairingStore.pair(from: text, status: status),
               pairing != self.pairing else { return }
-        snapshot.sessionID = nil
+        snapshot = ChatSnapshot()
         snapshot.childName = Pairing.childName(in: text)
         snapshot.title = snapshot.childName ?? "孩子"
         save()
@@ -97,6 +98,62 @@ final class ChatModel: ObservableObject {
         retry = nil
         status = shownOnReturn(status)
         open()
+    }
+
+    func followChildMessages() async {
+        struct FamilyAccess: Decodable { let revoked: Bool }
+        guard let origin = childMessagesOrigin, let agent = pairing?.agent else { return }
+        let session = URLSession(configuration: .ephemeral, delegate: FamilyRequestDelegate(), delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        while !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent {
+            var delay = 3
+            do {
+                let after = lines.childCursor
+                let path = origin.appendingPathComponent("family/child-messages")
+                var parts = URLComponents(url: path, resolvingAgainstBaseURL: false)!
+                parts.queryItems = [.init(name: "after", value: String(after))]
+                let timestamp = String(Int64(Date().timeIntervalSince1970))
+                let proof = "whatcha-child-messages-v1\n\(agent)\n\(identity.address)\n\(timestamp)\n\(after)"
+                var request = URLRequest(url: parts.url!, timeoutInterval: 15)
+                request.setValue(identity.address, forHTTPHeaderField: "X-Whatcha-Parent")
+                request.setValue(timestamp, forHTTPHeaderField: "X-Whatcha-Time")
+                request.setValue(identity.sign(Data(proof.utf8)), forHTTPHeaderField: "X-Whatcha-Signature")
+                let (data, response) = try await session.data(for: request)
+                guard !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent else { return }
+                let code = (response as? HTTPURLResponse)?.statusCode
+                if code == 403, (try? JSONDecoder().decode(FamilyAccess.self, from: data))?.revoked == true {
+                    clearRevokedPairing()
+                    return
+                }
+                guard code == 200 else { throw URLError(.badServerResponse) }
+                let page = try JSONDecoder().decode(ChildMessagePage.self, from: data)
+                let combined = lines.addingChildMessages(page.messages)
+                if combined.count != lines.count {
+                    snapshot.lines = combined
+                    save()
+                    if page.messages.count == 100 { delay = 0 }
+                }
+            } catch {
+                delay = 10
+            }
+            try? await Task.sleep(for: .seconds(delay))
+        }
+    }
+
+    private func clearRevokedPairing() {
+        retry?.cancel()
+        retry = nil
+        deadline?.cancel()
+        deadline = nil
+        link?.onDisconnected = nil
+        link?.onEvent = nil
+        link?.drop()
+        link = nil
+        pairing = nil
+        pairingStore.clear()
+        status = .unpaired
+        pairingError = "此前的家人配对已撤销，请孩子重新发送口令。"
+        save()
     }
 
     private func sendQueued() {

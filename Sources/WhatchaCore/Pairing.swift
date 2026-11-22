@@ -3,18 +3,20 @@ import Foundation
 public struct Pairing: Codable, Equatable {
     public let agent: String
     public let invite: String?
+    public private(set) var familyOrigin: URL?
     public private(set) var accepted: Bool = false
     public private(set) var refused: Bool = false
     public var relay: URL { URL(string: "wss://oo.openonion.ai")! }
 
     public init(agent: String, invite: String?) { self.agent = agent; self.invite = invite }
 
-    private enum CodingKeys: String, CodingKey { case agent, invite, accepted, refused }
+    private enum CodingKeys: String, CodingKey { case agent, invite, accepted, refused, familyOrigin }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         agent = try values.decode(String.self, forKey: .agent)
         invite = try values.decodeIfPresent(String.self, forKey: .invite)
+        familyOrigin = try values.decodeIfPresent(URL.self, forKey: .familyOrigin)
         accepted = try values.decodeIfPresent(Bool.self, forKey: .accepted) ?? false
         refused = try values.decodeIfPresent(Bool.self, forKey: .refused) ?? false
     }
@@ -38,7 +40,12 @@ public struct Pairing: Codable, Equatable {
         guard let bytes = Data(base64Encoded: payload + "="), bytes.count == 44 else { return nil }
         let token = bytes.suffix(12).base64EncodedString()
             .replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_")
-        return Pairing(agent: "0x" + bytes.prefix(32).hex, invite: token)
+        var pairing = Pairing(agent: "0x" + bytes.prefix(32).hex, invite: token)
+        let prefix = "家庭消息："
+        if let line = text.split(whereSeparator: \.isNewline).first(where: { $0.hasPrefix(prefix) }) {
+            pairing.familyOrigin = familyHTTPSOrigin(String(line.dropFirst(prefix.count)))
+        }
+        return pairing
     }
 
     public static func childName(in text: String) -> String? {
@@ -52,6 +59,14 @@ public struct Pairing: Codable, Equatable {
         }
         return nil
     }
+}
+
+public func familyHTTPSOrigin(_ text: String) -> URL? {
+    guard let parts = URLComponents(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
+          parts.scheme?.lowercased() == "https", parts.host?.isEmpty == false,
+          parts.user == nil, parts.password == nil, parts.query == nil, parts.fragment == nil,
+          parts.path.isEmpty || parts.path == "/" else { return nil }
+    return parts.url
 }
 
 public func canPastePairing(_ current: Pairing?, status: Status) -> Bool {
@@ -86,6 +101,8 @@ public struct PairingStore {
     public func save(_ pairing: Pairing) {
         defaults.set(try! JSONEncoder().encode(pairing), forKey: "pairing")
     }
+
+    public func clear() { defaults.removeObject(forKey: "pairing") }
 
     public func pair(from text: String, status: Status = .unpaired) -> Pairing? {
         let current = load()

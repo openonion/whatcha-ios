@@ -13,6 +13,13 @@ final class PairingTests: XCTestCase {
         XCTAssertNil(Pairing.childName(in: "孩子名字：" + String(repeating: "雨", count: 41)))
     }
 
+    func testFamilyMessagesOriginIsLimitedToHTTPSOrigin() {
+        XCTAssertEqual(Pairing.parse("家庭消息：https://family.example\n" + code)?.familyOrigin?.host, "family.example")
+        for unsafe in ["http://family.example", "https://user@family.example", "https://family.example/path"] {
+            XCTAssertNil(Pairing.parse("家庭消息：\(unsafe)\n" + code)?.familyOrigin)
+        }
+    }
+
     func testValidCodeDecodesAddressAndToken() throws {
         let pairing = try XCTUnwrap(Pairing.parse(code))
         XCTAssertEqual(pairing, expected)
