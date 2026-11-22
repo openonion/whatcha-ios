@@ -2,6 +2,21 @@ import XCTest
 @testable import WhatchaCore
 
 final class ConversationTests: XCTestCase {
+    func testManualRepliesKeepSourceAndOrderAfterReplay() throws {
+        let payload = """
+        {"messages":[{"id":"07e48dbf-d766-4f11-b39c-8162061afa01","sequence":5,"text":"我到了","at":20}]}
+        """
+        let page = try JSONDecoder().decode(ChildMessagePage.self, from: Data(payload.utf8))
+        let chat = [Line(fromParent: true, text: "到了吗", at: 10),
+                    Line(fromParent: false, text: "我到了", at: 30)]
+        let joined = chat.addingChildMessages(page.messages)
+        XCTAssertEqual(joined.map(\.childSequence), [nil, 5, nil])
+        XCTAssertEqual(joined.childCursor, 5)
+        XCTAssertEqual(joined.addingChildMessages(page.messages), joined)
+        let saved = try JSONEncoder().encode(joined)
+        XCTAssertEqual(try JSONDecoder().decode([Line].self, from: saved), joined)
+    }
+
     private func asked(_ text: String, _ delivery: Delivery) -> Line {
         Line(fromParent: true, text: text, at: 0, delivery: delivery)
     }

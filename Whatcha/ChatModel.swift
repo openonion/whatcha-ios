@@ -19,6 +19,7 @@ final class ChatModel: ObservableObject {
     var lines: [Line] { snapshot.lines }
     var header: String { headerTitle(snapshot.title, lines: lines, status: status) }
     var needsPairing: Bool { canPastePairing(pairing, status: status) }
+    var childMessagesOrigin: URL? { pairing?.accepted == true ? pairing?.familyOrigin : nil }
 
     init() {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -97,6 +98,40 @@ final class ChatModel: ObservableObject {
         retry = nil
         status = shownOnReturn(status)
         open()
+    }
+
+    func followChildMessages() async {
+        guard let origin = childMessagesOrigin, let agent = pairing?.agent else { return }
+        let session = URLSession(configuration: .ephemeral, delegate: FamilyRequestDelegate(), delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        while !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent {
+            var delay = 3
+            do {
+                let after = lines.childCursor
+                let path = origin.appendingPathComponent("family/child-messages")
+                var parts = URLComponents(url: path, resolvingAgainstBaseURL: false)!
+                parts.queryItems = [.init(name: "after", value: String(after))]
+                let timestamp = String(Int64(Date().timeIntervalSince1970))
+                let proof = "whatcha-child-messages-v1\n\(agent)\n\(identity.address)\n\(timestamp)\n\(after)"
+                var request = URLRequest(url: parts.url!, timeoutInterval: 15)
+                request.setValue(identity.address, forHTTPHeaderField: "X-Whatcha-Parent")
+                request.setValue(timestamp, forHTTPHeaderField: "X-Whatcha-Time")
+                request.setValue(identity.sign(Data(proof.utf8)), forHTTPHeaderField: "X-Whatcha-Signature")
+                let (data, response) = try await session.data(for: request)
+                guard !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent else { return }
+                guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+                let page = try JSONDecoder().decode(ChildMessagePage.self, from: data)
+                let combined = lines.addingChildMessages(page.messages)
+                if combined.count != lines.count {
+                    snapshot.lines = combined
+                    save()
+                    if page.messages.count == 100 { delay = 0 }
+                }
+            } catch {
+                delay = 10
+            }
+            try? await Task.sleep(for: .seconds(delay))
+        }
     }
 
     private func sendQueued() {

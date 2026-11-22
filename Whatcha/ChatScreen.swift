@@ -26,6 +26,9 @@ struct ChatScreen: View {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { typing = false }
         }
+        .task(id: scenePhase == .active ? model.childMessagesOrigin : nil) {
+            if scenePhase == .active { await model.followChildMessages() }
+        }
     }
 
     private var unpaired: some View {
@@ -244,9 +247,8 @@ private struct MessageRow: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
                         .fixedSize(horizontal: false, vertical: true)
-                        .background(line.fromParent ? parentGreen : Color(red: 224/255, green: 236/255, blue: 250/255),
-                                    in: RoundedRectangle(cornerRadius: 6))
-                        .accessibilityLabel("\(line.fromParent ? "我" : agentName)：\(line.text)")
+                        .background(bubbleColor, in: RoundedRectangle(cornerRadius: 6))
+                        .accessibilityLabel("\(sender)：\(line.text)")
                 }
                 .frame(maxWidth: line.fromParent ? 330 : 270,
                        alignment: line.fromParent ? .trailing : .leading)
@@ -265,17 +267,37 @@ private struct MessageRow: View {
         }
     }
 
+    private var sender: String {
+        if line.fromParent { return "我" }
+        return line.childSequence == nil ? "\(agentName)，AI 代答" : "\(agentName)，本人"
+    }
+
+    private var bubbleColor: Color {
+        if line.fromParent { return parentGreen }
+        return line.childSequence == nil
+            ? Color(red: 236/255, green: 228/255, blue: 250/255)
+            : Color(red: 213/255, green: 235/255, blue: 250/255)
+    }
+
     private var avatar: some View {
-        Image(uiImage: UIImage(named: line.fromParent ? "avatar_parent" : "avatar_agent")!)
-            .resizable()
-            .frame(width: 60, height: 60)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .accessibilityHidden(true)
+        Group {
+            if line.fromParent {
+                Image("avatar_parent").resizable()
+            } else {
+                Text(String(agentName.prefix(1)))
+                    .font(.system(size: bodySize, weight: .semibold))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(red: 224/255, green: 236/255, blue: 250/255))
+            }
+        }
+        .frame(width: 60, height: 60)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .accessibilityHidden(true)
     }
 
     private var tail: some View {
         BubbleTail(pointsLeft: !line.fromParent)
-            .fill(line.fromParent ? parentGreen : Color(red: 224/255, green: 236/255, blue: 250/255))
+            .fill(bubbleColor)
             .frame(width: 8, height: 16)
             .padding(.top, 22)
             .padding(line.fromParent ? .trailing : .leading, 4)

@@ -1,6 +1,7 @@
 import Foundation
 import Security
 import SwiftUI
+import WhatchaCore
 
 private struct FamilyMember: Decodable, Identifiable {
     let id: String
@@ -18,6 +19,7 @@ private struct FamilyConversation: Decodable, Identifiable {
     let id: String
     let label: String
     let messages: [Message]
+    let parent: String?
 }
 
 private struct FamilyOverview: Decodable {
@@ -61,8 +63,11 @@ private struct FamilyConnection: Codable {
         return status == errSecSuccess || status == errSecItemNotFound
     }
 
-    func request<T: Decodable>(_ path: String, body: Data? = nil) async throws -> T {
-        var request = URLRequest(url: url.appendingPathComponent(path), timeoutInterval: 15)
+    func request<T: Decodable>(_ path: String, query: [URLQueryItem] = [], body: Data? = nil) async throws -> T {
+        var parts = URLComponents(url: url.appendingPathComponent(path), resolvingAgainstBaseURL: false)
+        if !query.isEmpty { parts?.queryItems = query }
+        guard let requestURL = parts?.url else { throw URLError(.badURL) }
+        var request = URLRequest(url: requestURL, timeoutInterval: 15)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         if let body {
             request.httpMethod = "POST"
@@ -78,7 +83,7 @@ private struct FamilyConnection: Codable {
     }
 }
 
-private final class FamilyRequestDelegate: NSObject, URLSessionTaskDelegate {
+final class FamilyRequestDelegate: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask,
                     willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
                     completionHandler: @escaping (URLRequest?) -> Void) {
@@ -116,17 +121,10 @@ struct FamilyAdminScreen: View {
                         }
                     }
                     Section("会话") {
-                        if overview?.conversations.isEmpty == true { Text("还没有家人消息") }
-                        ForEach(overview?.conversations ?? []) { conversation in
+                        if overview != nil && conversations.isEmpty { Text("还没有家人消息") }
+                        ForEach(conversations) { conversation in
                             NavigationLink {
-                                List(conversation.messages) { message in
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(message.sender == "user" ? conversation.label : "AI")
-                                            .font(.caption).foregroundStyle(.secondary)
-                                        Text(message.text)
-                                    }
-                                }
-                                .navigationTitle(conversation.label)
+                                FamilyConversationScreen(connection: connection, conversation: conversation)
                             } label: {
                                 VStack(alignment: .leading) {
                                     Text(conversation.label)
@@ -167,11 +165,16 @@ struct FamilyAdminScreen: View {
         }
     }
 
+    private var conversations: [FamilyConversation] {
+        guard let overview else { return [] }
+        let known = Set(overview.conversations.compactMap(\.parent))
+        return overview.conversations + overview.members.filter { $0.paired && !known.contains($0.id) }.map {
+            FamilyConversation(id: "member-\($0.id)", label: $0.label, messages: [], parent: $0.id)
+        }
+    }
+
     private func connect() {
-        guard let parts = URLComponents(string: endpoint.trimmingCharacters(in: .whitespacesAndNewlines)),
-              parts.scheme?.lowercased() == "https", parts.host != nil,
-              parts.user == nil, parts.password == nil, parts.query == nil, parts.fragment == nil,
-              parts.path.isEmpty || parts.path == "/", let url = parts.url else {
+        guard let url = familyHTTPSOrigin(endpoint) else {
             error = "请输入家庭服务的 HTTPS 地址。"
             return
         }
@@ -223,6 +226,89 @@ struct FamilyAdminScreen: View {
             } catch {
                 self.error = "生成口令失败。请刷新家人列表后再试。"
             }
+        }
+    }
+}
+
+private struct FamilyConversationScreen: View {
+    let connection: FamilyConnection
+    let conversation: FamilyConversation
+    @State private var manual: [ChildMessage] = []
+    @State private var draft = ""
+    @State private var pending: Outgoing?
+    @State private var busy = false
+    @State private var error: String?
+
+    private struct Outgoing: Encodable {
+        var id = UUID().uuidString.lowercased()
+        let parent: String
+        let text: String
+    }
+
+    var body: some View {
+        List {
+            ForEach(conversation.messages) { message in
+                row(message.sender == "user" ? conversation.label : "AI 代答", message.text)
+            }
+            ForEach(manual) { message in row("我", message.text) }
+            if let parent = conversation.parent {
+                TextField("写给\(conversation.label)", text: $draft, axis: .vertical)
+                    .lineLimit(1...4)
+                    .disabled(busy)
+                Button("发送") { Task { await send(parent: parent) } }
+                    .disabled(busy || !(1...2000).contains(text.count))
+            }
+            if let error { Text(error).foregroundStyle(.red) }
+        }
+        .navigationTitle(conversation.label)
+        .refreshable { await refresh() }
+        .task { await refresh() }
+    }
+
+    private var text: String { draft.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    private func row(_ sender: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(sender).font(.caption).foregroundStyle(.secondary)
+            Text(text)
+        }
+    }
+
+    private func refresh() async {
+        guard let parent = conversation.parent else { return }
+        do {
+            var received: [ChildMessage] = []
+            var after: Int64 = 0
+            while !Task.isCancelled {
+                let page: ChildMessagePage = try await connection.request("family/sent-messages", query: [
+                    .init(name: "parent", value: parent), .init(name: "after", value: String(after))
+                ])
+                received += page.messages
+                guard page.messages.count == 100, let next = page.messages.last?.sequence, next > after else { break }
+                after = next
+            }
+            if !Task.isCancelled { manual = received }
+        } catch {
+            if !Task.isCancelled { self.error = "没能加载本人发出的消息，请下拉重试。" }
+        }
+    }
+
+    private func send(parent: String) async {
+        struct Receipt: Decodable { let id: String }
+        guard !busy else { return }
+        let outgoing = pending.flatMap { $0.text == text ? $0 : nil } ?? Outgoing(parent: parent, text: text)
+        pending = outgoing
+        busy = true
+        defer { busy = false }
+        do {
+            let receipt: Receipt = try await connection.request("family/child-messages", body: JSONEncoder().encode(outgoing))
+            guard receipt.id == outgoing.id else { throw URLError(.badServerResponse) }
+            draft = ""
+            pending = nil
+            error = nil
+            await refresh()
+        } catch {
+            self.error = "未能确认发送，请点「发送」重试。"
         }
     }
 }

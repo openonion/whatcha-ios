@@ -8,6 +8,7 @@ public struct Line: Codable, Equatable, Identifiable {
     public var text: String
     public var at: Int64
     public var delivery: Delivery = .done
+    public var childSequence: Int64?
 
     public init(fromParent: Bool, text: String, at: Int64, delivery: Delivery = .done) {
         self.fromParent = fromParent
@@ -15,6 +16,17 @@ public struct Line: Codable, Equatable, Identifiable {
         self.at = at
         self.delivery = delivery
     }
+}
+
+public struct ChildMessage: Decodable, Equatable, Identifiable {
+    public let id: UUID
+    public let sequence: Int64
+    public let text: String
+    public let at: Int64
+}
+
+public struct ChildMessagePage: Decodable {
+    public let messages: [ChildMessage]
 }
 
 public struct HistoryItem: Equatable {
@@ -30,6 +42,22 @@ public let agentFailed = "这条消息暂时没收到回复。点一下红色的
 
 // The host accepts one INPUT per turn; replies have no message ID.
 public extension Array where Element == Line {
+    var childCursor: Int64 { compactMap(\.childSequence).max() ?? 0 }
+
+    func addingChildMessages(_ messages: [ChildMessage]) -> [Line] {
+        var cursor = childCursor
+        var combined = self
+        for message in messages.sorted(by: { $0.sequence < $1.sequence }) where message.sequence > cursor {
+            var line = Line(fromParent: false, text: message.text, at: message.at)
+            line.id = message.id
+            line.childSequence = message.sequence
+            let index = combined.lastIndex(where: { $0.at <= message.at }).map { $0 + 1 } ?? 0
+            combined.insert(line, at: index)
+            cursor = message.sequence
+        }
+        return combined
+    }
+
     func nextToSend() -> Line? {
         contains { $0.delivery == .sent } ? nil : first { $0.delivery == .queued }
     }
@@ -69,7 +97,7 @@ public extension Array where Element == Line {
               let asked = history.lastIndex(where: { $0.fromParent }),
               history[asked].text == waiting.text,
               let answer = history.dropFirst(asked + 1).last?.text else { return nil }
-        if answer == last(where: { !$0.fromParent })?.text {
+        if answer == last(where: { !$0.fromParent && $0.childSequence == nil })?.text {
             // Equal reply text does not identify a turn: the demo and real agents
             // can answer multiple questions identically. Require a newer question
             // occurrence before recovering an otherwise indistinguishable reply.
