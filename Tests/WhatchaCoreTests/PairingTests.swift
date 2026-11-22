@@ -20,6 +20,16 @@ final class PairingTests: XCTestCase {
         }
     }
 
+    func testPrivateManagementInviteRequiresTLSAndValidToken() {
+        let token = String(repeating: "a", count: 32)
+        let invite = "在干嘛 · 管理邀请\n家庭服务：https://family.example\n管理口令：\(token)"
+        XCTAssertEqual(FamilySetup.parse(invite)?.origin.host, "family.example")
+        XCTAssertEqual(FamilySetup.parse(invite)?.token, token)
+        XCTAssertNil(FamilySetup.parse(invite.replacingOccurrences(of: "https:", with: "http:")))
+        XCTAssertNil(FamilySetup.parse(invite.replacingOccurrences(of: token, with: "missing")))
+        XCTAssertNil(FamilySetup.parse(code))
+    }
+
     func testValidCodeDecodesAddressAndToken() throws {
         let pairing = try XCTUnwrap(Pairing.parse(code))
         XCTAssertEqual(pairing, expected)

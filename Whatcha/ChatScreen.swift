@@ -19,6 +19,8 @@ struct ChatScreen: View {
     @State private var selection: PhotosPickerItem?
     @State private var preview: Data?
     @State private var previewIsDraft = false
+    @State private var confirmPairingChange = false
+    @State private var slowReply = false
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     @ScaledMetric private var bodySize: CGFloat = 24
@@ -30,6 +32,16 @@ struct ChatScreen: View {
         .font(.system(size: bodySize))
         .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
         .background(chatBackground.ignoresSafeArea())
+        .confirmationDialog("重新配对", isPresented: $confirmPairingChange, titleVisibility: .visible) {
+            Button("重新配对", role: .destructive) {
+                draft = ""
+                media.cancelRecording()
+                model.beginPairingReplacement()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("请孩子发来新口令。新配对成功后，这部手机上的旧聊天会被替换。")
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 typing = false
@@ -38,6 +50,14 @@ struct ChatScreen: View {
         }
         .task(id: scenePhase == .active ? model.childMessagesOrigin : nil) {
             if scenePhase == .active { await model.followChildMessages() }
+        }
+        .task(id: model.lines.first { $0.delivery == .sent }?.id) {
+            slowReply = false
+            guard model.lines.contains(where: { $0.delivery == .sent }) else { return }
+            do {
+                try await Task.sleep(for: .seconds(45))
+                slowReply = true
+            } catch {}
         }
         .task(id: selection) {
             guard let selection else { return }
@@ -89,19 +109,27 @@ struct ChatScreen: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 28) {
-                    Text("请孩子在微信里发来口令，\n长按复制，再回到这里")
+                    Text("请孩子在微信里发来口令，\n长按复制，再回到这里点「粘贴」")
                         .font(.system(size: bodySize, weight: .medium))
                         .lineSpacing(8)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                    PairingPasteControl(onPaste: model.paste)
+                    FamilyPasteControl(identifier: "pairing-paste", onPaste: model.paste, onFailure: model.needsClipboardRetry)
                         .frame(width: 240, height: max(72, bodySize * 3))
+                    if model.status == .connecting {
+                        ProgressView("正在连接家人…")
+                            .font(.callout)
+                    } else if model.status == .offline {
+                        Button("重新连接") { model.cameBack() }
+                            .buttonStyle(.bordered)
+                    }
                     if let error = model.pairingError {
                         Text(error)
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    if model.replacingPairing { Button("返回原来的聊天") { model.cancelPairingReplacement() } }
                     Link("隐私政策", destination: privacyPolicyURL)
                         .font(.footnote)
                     Button("选择身份", action: switchRole).font(.footnote)
@@ -124,6 +152,7 @@ struct ChatScreen: View {
                 .overlay(alignment: .trailing) {
                     Menu {
                         Link("隐私政策", destination: privacyPolicyURL)
+                        Button("重新配对") { confirmPairingChange = true }
                         Button("选择身份", action: switchRole)
                     } label: {
                         Image(systemName: "info.circle")
@@ -134,6 +163,11 @@ struct ChatScreen: View {
                 }
             Divider()
             if let trouble = statusText(model.status) { statusStrip(trouble) }
+            if slowReply && model.status == .online {
+                Button("等得有点久，检查连接") { model.checkConnection() }
+                    .font(.callout)
+                    .padding(8)
+            }
             if model.lines.isEmpty { emptyChat } else { conversation }
             if showsComposer(model.status) { composer }
         }
@@ -260,10 +294,12 @@ struct ChatScreen: View {
     }
 }
 
-private struct PairingPasteControl: UIViewRepresentable {
+struct FamilyPasteControl: UIViewRepresentable {
+    let identifier: String
     var onPaste: (String) -> Void
+    var onFailure: () -> Void
 
-    func makeCoordinator() -> Recipient { Recipient(onPaste: onPaste) }
+    func makeCoordinator() -> Recipient { Recipient(onPaste: onPaste, onFailure: onFailure) }
 
     func makeUIView(context: Context) -> UIPasteControl {
         let configuration = UIPasteControl.Configuration()
@@ -273,12 +309,13 @@ private struct PairingPasteControl: UIViewRepresentable {
         configuration.baseForegroundColor = .white
         let control = UIPasteControl(configuration: configuration)
         control.target = context.coordinator
-        control.accessibilityIdentifier = "pairing-paste"
+        control.accessibilityIdentifier = identifier
         return control
     }
 
     func updateUIView(_ uiView: UIPasteControl, context: Context) {
         context.coordinator.onPaste = onPaste
+        context.coordinator.onFailure = onFailure
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIPasteControl, context: Context) -> CGSize? {
@@ -287,9 +324,11 @@ private struct PairingPasteControl: UIViewRepresentable {
 
     final class Recipient: UIResponder {
         var onPaste: (String) -> Void
+        var onFailure: () -> Void
 
-        init(onPaste: @escaping (String) -> Void) {
+        init(onPaste: @escaping (String) -> Void, onFailure: @escaping () -> Void) {
             self.onPaste = onPaste
+            self.onFailure = onFailure
             super.init()
             pasteConfiguration = UIPasteConfiguration(forAccepting: NSString.self)
         }
@@ -300,10 +339,11 @@ private struct PairingPasteControl: UIViewRepresentable {
 
         override func paste(itemProviders: [NSItemProvider]) {
             guard let provider = itemProviders.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { return }
-            provider.loadObject(ofClass: NSString.self) { object, error in
-                precondition(error == nil, "Could not load pasted text: \(String(describing: error))")
-                let text = object as! String
-                DispatchQueue.main.async { self.onPaste(text) }
+            provider.loadObject(ofClass: NSString.self) { object, _ in
+                DispatchQueue.main.async {
+                    if let text = object as? String { self.onPaste(text) }
+                    else { self.onFailure() }
+                }
             }
         }
     }
@@ -406,11 +446,16 @@ private struct MessageRow: View {
             if line.delivery == .failed {
                 Button(action: retry) { RedBang().frame(width: 60, height: 60) }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("没发出去，点一下再发一次")
+                    .accessibilityLabel("没收到回复，点一下再试")
             } else {
                 ZStack {
                     if line.delivery == .queued || line.delivery == .sent {
-                        ProgressView().tint(.secondary).accessibilityLabel("正在发送")
+                        VStack(spacing: 3) {
+                            ProgressView().tint(.secondary).accessibilityHidden(true)
+                            Text(line.delivery == .queued ? "待发送" : "等回复")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .frame(width: 60, height: 60)

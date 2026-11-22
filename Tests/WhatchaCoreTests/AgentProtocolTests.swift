@@ -2,6 +2,27 @@ import XCTest
 @testable import WhatchaCore
 
 final class AgentProtocolTests: XCTestCase {
+    func testReplacementDoesNotAcceptAnExpiredInviteForATrustedPhone() throws {
+        let pairing = Pairing(agent: "0xagent", invite: "expired-ticket")
+        var protocolState = AgentProtocol(pairing: pairing, wire: Wire(me: Identity(), agent: pairing.agent),
+                                          requiresInvitation: true)
+        let existingTrust = try protocolState.receive(#"{"type":"CONNECTED","session_id":"new"}"#)
+        XCTAssertNil(existingTrust.event)
+        XCTAssertTrue(existingTrust.outgoing?.contains("ONBOARD_SUBMIT") == true)
+        let refused = try protocolState.receive(#"{"type":"ERROR","message":"Invalid invite code"}"#)
+        XCTAssertEqual(refused.event, .refused)
+    }
+
+    func testReplacementWaitsForTheSpecificInviteToBeAccepted() throws {
+        let pairing = Pairing(agent: "0xagent", invite: "fresh-ticket")
+        var protocolState = AgentProtocol(pairing: pairing, wire: Wire(me: Identity(), agent: pairing.agent),
+                                          requiresInvitation: true)
+        let first = try protocolState.receive(#"{"type":"CONNECTED","session_id":"new"}"#)
+        XCTAssertNil(first.event)
+        let accepted = try protocolState.receive(#"{"type":"ONBOARD_SUCCESS"}"#)
+        XCTAssertEqual(accepted.event, .connected("new", running: false, history: []))
+    }
+
     private func link(invite: String? = "test-invite", sessionID: String? = "saved") -> AgentProtocol {
         let pairing = Pairing(agent: "0xagent", invite: invite)
         return AgentProtocol(pairing: pairing, wire: Wire(me: Identity(), agent: pairing.agent), sessionID: sessionID)
