@@ -2,6 +2,8 @@
 
 Whatcha is an iPhone app for parents and children. The parent opens a conversation named for the child. The child manages invitations and messages from the same app. Use [BACKLOG.md](BACKLOG.md) to check which flows have passed release verification.
 
+For first-time child setup, the family service operator can send a private management invitation with separate lines beginning `家庭服务：` and `管理口令：`. Copy it and tap Paste under `管理邀请`, or enter the two values manually. Share ordinary family invitations from the connected child screen.
+
 Open `Whatcha.xcodeproj`. A parent copies the child's 口令 from WeChat, returns to the app and taps the native 「粘贴」 button. The button is the system UIPasteControl, so the app reads text only after that tap and iOS asks no permission. The app saves the decoded pairing in UserDefaults and makes it permanent once the agent accepts the phone. A refused, unaccepted pairing returns to the paste screen for a fresh code and stops retrying. Accepted pairings cannot be replaced. The phone creates its own Ed25519 identity in Keychain on first launch.
 
 For development, optionally copy `Config.example.xcconfig` to `Config.xcconfig` and fill in `AGENT_ADDRESS` and `INVITE_CODE`. That file is ignored by Git. Debug builds use it only when there is no saved pairing; a config pairing is locked like an accepted pairing. Release builds leave both bundled fields blank, so the distributed app carries no family's invite. The DEBUG-only `-uitest-unpaired` launch argument ignores saved/config pairings and uses a separate, reset test pairing store.

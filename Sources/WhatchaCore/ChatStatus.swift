@@ -7,7 +7,6 @@ public func shownOnReturn(_ status: Status) -> Status { status == .offline ? .co
 public func giveUpTry(_ status: Status) -> Bool { status != .online }
 
 public func headerTitle(_ name: String, lines: [Line], status: Status) -> String {
-    if status == .online && lines.contains(where: { $0.delivery == .sent }) { return "对方正在输入..." }
     return status == .connecting ? "\(name)(连接中…)" : name
 }
 

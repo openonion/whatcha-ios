@@ -69,6 +69,26 @@ public func familyHTTPSOrigin(_ text: String) -> URL? {
     return parts.url
 }
 
+/// A setup message sent privately to the child by their family service operator.
+public struct FamilySetup: Equatable {
+    public let origin: URL
+    public let token: String
+
+    public static func parse(_ text: String) -> Self? {
+        let lines = text.split(whereSeparator: \.isNewline)
+        func value(_ prefix: String) -> String? {
+            lines.first(where: { $0.hasPrefix(prefix) }).map {
+                $0.dropFirst(prefix.count).trimmingCharacters(in: .whitespaces)
+            }
+        }
+        guard let endpoint = value("家庭服务："), let origin = familyHTTPSOrigin(endpoint),
+              let token = value("管理口令："), (32...256).contains(token.utf8.count),
+              token.utf8.allSatisfy({ (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) })
+        else { return nil }
+        return Self(origin: origin, token: token)
+    }
+}
+
 public func canPastePairing(_ current: Pairing?, status: Status) -> Bool {
     current?.accepted != true
 }

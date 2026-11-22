@@ -19,7 +19,7 @@ iOS may include the conversation and the pairing in your device backup. Deleting
 
 **The clipboard**
 
-The app reads the clipboard only when you tap the 「粘贴」 button, and only to find the 口令.
+The app reads the clipboard when you tap a native Paste button to use a family pairing invitation or a private management invitation.
 
 **What leaves the phone**
 
@@ -52,7 +52,7 @@ iOS 可能把对话和配对放进设备备份。删除 App 会删掉它们；�
 
 **剪贴板**
 
-只有你点「粘贴」按钮时，App 才读取剪贴板，而且只用来找口令。
+你点「粘贴」按钮时，App 会读取剪贴板中的家人配对口令或私人管理邀请。
 
 **离开手机的**
 
