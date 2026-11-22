@@ -37,9 +37,9 @@ final class AgentLink {
         }
     }
 
-    func send(_ prompt: String) -> Bool {
+    func send(_ prompt: String, attachment: ChatAttachment?) -> Bool {
         guard let socket else { return false }
-        sendFrame(wire.input(prompt), on: socket)
+        sendFrame(wire.input(prompt, attachment: attachment), on: socket)
         return true
     }
 
