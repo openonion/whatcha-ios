@@ -16,6 +16,7 @@ private struct FamilyConversation: Decodable, Identifiable {
         let id: String
         let sender: String
         let text: String
+        let at: Int64?
     }
 
     let id: String
@@ -27,7 +28,7 @@ private struct FamilyConversation: Decodable, Identifiable {
 private struct FamilyOverview: Decodable {
     let members: [FamilyMember]
     let conversations: [FamilyConversation]
-    let handoffs: [Handoff]?
+    var handoffs: [Handoff]?
 
     struct Handoff: Decodable, Identifiable {
         let id: Int64
@@ -36,15 +37,25 @@ private struct FamilyOverview: Decodable {
     }
 }
 
+private enum FamilyRequestError: Error { case unauthorized }
+
 private struct FamilyConnection: Codable {
     let url: URL
     let token: String
 
-    private static let key: [String: String] = [
-        kSecClass as String: kSecClassGenericPassword as String,
-        kSecAttrService as String: "ai.openonion.whatcha.family",
-        kSecAttrAccount as String: "connection"
-    ]
+    private static var key: [String: String] {
+        var account = "connection"
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uitest-role-picker") {
+            account = ProcessInfo.processInfo.environment["WHATCHA_TEST_CHILD_CONNECTION"] ?? "test-picker"
+        }
+        #endif
+        return [
+            kSecClass as String: kSecClassGenericPassword as String,
+            kSecAttrService as String: "ai.openonion.whatcha.family",
+            kSecAttrAccount as String: account
+        ]
+    }
 
     static func load() -> Self? {
         var query: [String: Any] = key
@@ -86,8 +97,9 @@ private struct FamilyConnection: Codable {
         let session = URLSession(configuration: .ephemeral, delegate: FamilyRequestDelegate(), delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
         let (data, response) = try await session.data(for: request)
-        guard let response = response as? HTTPURLResponse,
-              (200..<300).contains(response.statusCode) else { throw URLError(.badServerResponse) }
+        guard let response = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        if response.statusCode == 401 { throw FamilyRequestError.unauthorized }
+        guard (200..<300).contains(response.statusCode) else { throw URLError(.badServerResponse) }
         return try JSONDecoder().decode(T.self, from: data)
     }
 }
@@ -103,15 +115,20 @@ final class FamilyRequestDelegate: NSObject, URLSessionTaskDelegate {
 struct FamilyAdminScreen: View {
     let switchRole: () -> Void
     @EnvironmentObject private var notifications: FamilyNotificationDelegate
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("childNotificationsToken") private var registeredToken = ""
     @State private var showHandoffs = false
     @State private var requestingNotifications = false
+    @State private var resolving: Set<Int64> = []
+    @State private var failedHandoffs: Set<Int64> = []
+    @State private var resolvedHandoffs: Set<Int64> = []
     @State private var connection = FamilyConnection.load()
     @State private var overview: FamilyOverview?
     @State private var endpoint = ""
     @State private var token = ""
     @State private var label = ""
     @State private var invitation: String?
+    @State private var showingInvite = false
     @State private var revoking: FamilyMember?
     @State private var busy = false
     @State private var error: String?
@@ -120,77 +137,81 @@ struct FamilyAdminScreen: View {
         NavigationStack {
             Form {
                 if let connection {
-                    Section("邀请家人") {
-                        TextField("称呼，例如妈妈", text: $label)
-                        Button("生成配对口令") { createInvitation(connection) }
-                            .disabled(busy || label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        if let invitation {
-                            ShareLink(item: invitation) { Label("分享口令", systemImage: "square.and.arrow.up") }
+                    if let error {
+                        Button { Task { await refresh(connection) } } label: {
+                            Label(error, systemImage: "arrow.clockwise").foregroundStyle(.red)
                         }
+                        .disabled(busy)
                     }
-                    Section("家人") {
-                        if overview?.members.isEmpty == true { Text("还没有家人配对") }
-                        ForEach(overview?.members ?? []) { member in
-                            LabeledContent(member.label, value: member.paired ? "已配对" : "待配对")
-                                .swipeActions {
-                                    Button("撤销", role: .destructive) { revoking = member }
-                                }
-                        }
+                    if overview != nil && conversations.isEmpty {
+                        invitationSection(connection)
+                        messageSection(connection)
+                    } else {
+                        messageSection(connection)
+                        invitationSection(connection)
                     }
-                    Section("会话") {
-                        if overview != nil && conversations.isEmpty { Text("还没有家人消息") }
-                        ForEach(conversations) { conversation in
-                            NavigationLink {
-                                FamilyConversationScreen(connection: connection, conversation: conversation)
-                            } label: {
-                                VStack(alignment: .leading) {
-                                    Text(conversation.label)
-                                    if let last = conversation.messages.last {
-                                        Text(last.text).lineLimit(1).foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                            .accessibilityIdentifier("family-conversation-\(conversation.id)")
-                        }
+                    memberSection
+                    Section("设置") {
+                        Button(registeredToken.isEmpty ? "开启留言提醒" : "关闭留言提醒") {
+                            Task { await toggleNotifications(connection) }
+                        }.disabled(busy || requestingNotifications)
+                        Button("退出管理员连接") {
+                            Task { await disconnect(connection) }
+                        }.disabled(busy || requestingNotifications)
                     }
-                    Button {
-                        showHandoffs = true
-                    } label: {
-                        LabeledContent("家人留言", value: String(overview?.handoffs?.count ?? 0))
-                    }
-                    Button(registeredToken.isEmpty ? "开启留言提醒" : "关闭留言提醒") {
-                        Task { await toggleNotifications(connection) }
-                    }.disabled(busy || requestingNotifications)
-                    Button("刷新家人和会话") { Task { await refresh(connection) } }.disabled(busy)
-                    Button("退出管理员连接") {
-                        Task { await disconnect(connection) }
-                    }.disabled(busy || requestingNotifications)
                 } else {
-                    Section("连接家庭服务") {
-                        TextField("HTTPS 地址", text: $endpoint)
+                    Section("管理邀请") {
+                        FamilyPasteControl(identifier: "family-setup-paste", onPaste: useManagementInvite, onFailure: {
+                            error = "没能读取管理邀请，请重新复制后再粘贴。"
+                        })
+                        .frame(height: 52)
+                        .disabled(busy)
+                        if let error { Text(error).foregroundStyle(.red) }
+                    }
+                    Section {
+                        TextField("HTTPS 地址", text: $endpoint, prompt: Text("家庭服务地址"))
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityIdentifier("family-service-address")
                             .keyboardType(.URL)
                         SecureField("管理员口令", text: $token)
-                        Button("连接") { connect() }.disabled(busy || token.isEmpty)
+                        Button("连接") { connect() }.disabled(busy || endpoint.isEmpty || token.isEmpty)
+                    } header: {
+                        Text("手动连接")
+                    } footer: {
+                        Text("复制完整的管理邀请，或填写家庭服务地址和管理员口令。")
                     }
                 }
                 if busy { ProgressView() }
-                if let error { Text(error).foregroundStyle(.red) }
                 Button("选择身份", action: switchRole).disabled(busy)
             }
             .navigationTitle("家人管理")
+            .refreshable { if let connection { await refresh(connection) } }
             .navigationDestination(isPresented: $showHandoffs) {
                 List {
-                    if overview?.handoffs?.isEmpty != false { Text("暂无待处理留言") }
+                    if overview == nil {
+                        if let connection, error != nil {
+                            Button("无法加载留言，点此重试") { Task { await refresh(connection) } }
+                        } else {
+                            ProgressView("正在加载留言")
+                        }
+                    } else if overview?.handoffs?.isEmpty != false {
+                        Text("暂无待处理留言")
+                    }
                     ForEach(overview?.handoffs ?? []) { handoff in
                         VStack(alignment: .leading, spacing: 8) {
+                            Text(senderName(handoff)).font(.headline)
                             Text(handoff.text)
                             if let conversation = conversations.first(where: { $0.parent == handoff.parent }),
                                let connection {
                                 NavigationLink("打开\(conversation.label)的会话") {
                                     FamilyConversationScreen(connection: connection, conversation: conversation)
                                 }
-                                Button("标记已处理") { Task { await resolve(handoff, connection: connection) } }
+                            }
+                            if let connection {
+                                Button(resolving.contains(handoff.id) ? "正在处理…" :
+                                       failedHandoffs.contains(handoff.id) ? "处理失败，点此重试" : "标记已处理") {
+                                    Task { await resolve(handoff, connection: connection) }
+                                }.disabled(resolving.contains(handoff.id))
                             }
                         }
                     }
@@ -232,6 +253,72 @@ struct FamilyAdminScreen: View {
                     Task { await refresh(connection) }
                 }
             }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active, let connection { Task { await refresh(connection) } }
+            }
+        }
+    }
+
+    private func invitationSection(_ connection: FamilyConnection) -> some View {
+        Section("邀请家人") {
+            if showingInvite || conversations.isEmpty || invitation != nil {
+                TextField("称呼，例如妈妈", text: $label)
+                Button("生成配对口令") { createInvitation(connection) }
+                    .disabled(busy || label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if let invitation {
+                    ShareLink(item: invitation) { Label("把口令发给家人", systemImage: "square.and.arrow.up") }
+                }
+            } else {
+                Button("添加家人", systemImage: "person.badge.plus") { showingInvite = true }
+            }
+        }
+    }
+
+    private func messageSection(_ connection: FamilyConnection) -> some View {
+        Section("消息") {
+            Button {
+                showHandoffs = true
+                Task { await refresh(connection) }
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    LabeledContent("家人留言", value: overview.flatMap { $0.handoffs?.count }.map(String.init) ?? "—")
+                    if let newest = overview?.handoffs?.first {
+                        Text("\(senderName(newest))：\(newest.text)")
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .accessibilityIdentifier("family-handoffs")
+            if overview != nil && conversations.isEmpty { Text("家人配对后，会在这里看到会话。").foregroundStyle(.secondary) }
+            ForEach(conversations) { conversation in
+                NavigationLink {
+                    FamilyConversationScreen(connection: connection, conversation: conversation)
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text(conversation.label)
+                        if let last = conversation.messages.last {
+                            Text(last.text).lineLimit(1).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .accessibilityIdentifier("family-conversation-\(conversation.id)")
+            }
+        }
+    }
+
+    private func senderName(_ handoff: FamilyOverview.Handoff) -> String {
+        overview?.members.first { $0.id == handoff.parent }?.label ?? "家人"
+    }
+
+    private var memberSection: some View {
+        Section("家人") {
+            ForEach(overview?.members ?? []) { member in
+                LabeledContent(member.label, value: member.paired ? "已配对" : "待配对")
+                    .swipeActions {
+                        Button(member.paired ? "解除配对" : "撤销口令", role: .destructive) { revoking = member }
+                    }
+            }
         }
     }
 
@@ -248,8 +335,20 @@ struct FamilyAdminScreen: View {
             error = "请输入家庭服务的 HTTPS 地址。"
             return
         }
-        let candidate = FamilyConnection(url: url, token: token)
+        connect(FamilyConnection(url: url, token: token))
+    }
+
+    private func useManagementInvite(_ text: String) {
+        guard let setup = FamilySetup.parse(text) else {
+            error = "没找到管理邀请。请复制包含家庭服务和管理口令的整条消息。"
+            return
+        }
+        connect(FamilyConnection(url: setup.origin, token: setup.token))
+    }
+
+    private func connect(_ candidate: FamilyConnection) {
         Task {
+            guard !busy else { return }
             busy = true
             defer { busy = false }
             do {
@@ -271,8 +370,13 @@ struct FamilyAdminScreen: View {
         busy = true
         defer { busy = false }
         do {
-            overview = try await connection.request("family")
+            var update: FamilyOverview = try await connection.request("family")
+            update.handoffs?.removeAll { resolvedHandoffs.contains($0.id) }
+            overview = update
             error = nil
+        } catch FamilyRequestError.unauthorized {
+            endLocalConnection()
+            if self.connection == nil { error = "管理员口令已失效，请粘贴新的管理邀请。" }
         } catch {
             overview = nil
             self.error = "无法读取家人和会话。请检查连接后重试。"
@@ -358,12 +462,17 @@ struct FamilyAdminScreen: View {
 
     private func resolve(_ handoff: FamilyOverview.Handoff, connection: FamilyConnection) async {
         struct Receipt: Decodable { let id: Int64 }
+        guard resolving.insert(handoff.id).inserted else { return }
+        defer { resolving.remove(handoff.id) }
+        failedHandoffs.remove(handoff.id)
         do {
             let data = try JSONEncoder().encode(["id": handoff.id])
-            let _: Receipt = try await connection.request("family/resolve-handoff", body: data)
-            await refresh(connection)
+            let receipt: Receipt = try await connection.request("family/resolve-handoff", body: data)
+            guard receipt.id == handoff.id else { throw URLError(.badServerResponse) }
+            resolvedHandoffs.insert(handoff.id)
+            overview?.handoffs?.removeAll { $0.id == handoff.id }
         } catch {
-            self.error = "无法更新家人留言，请刷新后重试。"
+            failedHandoffs.insert(handoff.id)
         }
     }
 
@@ -373,18 +482,28 @@ struct FamilyAdminScreen: View {
         defer { busy = false }
         do {
             if !registeredToken.isEmpty {
-                try await setNotification(registeredToken, enabled: false, connection)
-                registeredToken = ""
-                UIApplication.shared.unregisterForRemoteNotifications()
+                do { try await setNotification(registeredToken, enabled: false, connection) }
+                catch FamilyRequestError.unauthorized {}
             }
-            guard FamilyConnection.remove() else { throw CocoaError(.fileWriteUnknown) }
-            self.connection = nil
-            overview = nil
-            invitation = nil
-            error = nil
+            endLocalConnection()
         } catch {
             self.error = "无法退出管理员连接，请检查网络后重试。"
         }
+    }
+
+    private func endLocalConnection() {
+        guard FamilyConnection.remove() else {
+            error = "无法清除管理员连接，请重试。"
+            return
+        }
+        registeredToken = ""
+        UIApplication.shared.unregisterForRemoteNotifications()
+        self.connection = nil
+        overview = nil
+        invitation = nil
+        resolvedHandoffs = []
+        failedHandoffs = []
+        error = nil
     }
 }
 
@@ -393,6 +512,7 @@ private struct FamilyConversationScreen: View {
     let conversation: FamilyConversation
     @State private var manual: [ChildMessage] = []
     @State private var hostMessages: [FamilyConversation.Message]?
+    @State private var acknowledged: [DisplayMessage] = []
     @State private var draft = ""
     @State private var pending: Outgoing?
     @State private var busy = false
@@ -404,20 +524,62 @@ private struct FamilyConversationScreen: View {
         let text: String
     }
 
+    private struct DisplayMessage: Identifiable {
+        let id: String
+        let sender: String
+        let text: String
+        let at: Int64?
+    }
+
+    private var messages: [DisplayMessage] {
+        let host = (hostMessages ?? conversation.messages).map {
+            DisplayMessage(id: "host-\($0.id)", sender: $0.sender == "user" ? conversation.label : "AI 代答",
+                           text: $0.text, at: $0.at)
+        }
+        let sent = manual.map {
+            DisplayMessage(id: $0.id.uuidString.lowercased(), sender: "我", text: $0.text, at: $0.at)
+        }
+        let saved = Set(sent.map(\.id))
+        let direct = (sent + acknowledged.filter { !saved.contains($0.id) }).sorted {
+            ($0.at ?? 0) < ($1.at ?? 0)
+        }
+        var ordered: [DisplayMessage] = []
+        var next = 0
+        for message in host {
+            if let at = message.at {
+                while next < direct.count, let earlier = direct[next].at, earlier < at {
+                    ordered.append(direct[next])
+                    next += 1
+                }
+            }
+            ordered.append(message)
+        }
+        return ordered + direct.dropFirst(next)
+    }
+
     var body: some View {
         List {
-            ForEach(hostMessages ?? conversation.messages) { message in
-                row(message.sender == "user" ? conversation.label : "AI 代答", message.text)
-            }
-            ForEach(manual) { message in row("我", message.text) }
+            ForEach(messages) { message in row(message.sender, message.text) }
+        }
+        .defaultScrollAnchor(.bottom)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if let parent = conversation.parent {
-                TextField("写给\(conversation.label)", text: $draft, axis: .vertical)
-                    .lineLimit(1...4)
-                    .disabled(busy)
-                Button("发送") { Task { await send(parent: parent) } }
-                    .disabled(busy || !(1...2000).contains(text.count))
+                VStack(alignment: .leading, spacing: 8) {
+                    if let error { Text(error).font(.footnote).foregroundStyle(.red) }
+                    HStack(alignment: .bottom) {
+                        TextField("写给\(conversation.label)", text: $draft, axis: .vertical)
+                            .lineLimit(1...4)
+                            .textFieldStyle(.roundedBorder)
+                            .disabled(busy)
+                        Button(busy ? "发送中…" : "发送") { Task { await send(parent: parent) } }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(busy || !(1...2000).contains(text.count))
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.bar)
             }
-            if let error { Text(error).foregroundStyle(.red) }
         }
         .navigationTitle(conversation.label)
         .refreshable { await refresh() }
@@ -488,7 +650,11 @@ private struct FamilyConversationScreen: View {
             try body.write(to: path, options: [.atomic, .completeFileProtection])
             let receipt: Receipt = try await connection.request("family/child-messages", body: body)
             guard receipt.id == outgoing.id else { throw URLError(.badServerResponse) }
-            try FileManager.default.removeItem(at: path)
+            if !acknowledged.contains(where: { $0.id == receipt.id }) {
+                acknowledged.append(DisplayMessage(id: receipt.id, sender: "我", text: outgoing.text,
+                                                    at: Int64(Date().timeIntervalSince1970 * 1000)))
+            }
+            try? FileManager.default.removeItem(at: path)
             draft = ""
             pending = nil
             error = nil

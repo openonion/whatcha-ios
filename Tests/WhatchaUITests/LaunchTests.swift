@@ -28,16 +28,15 @@ final class LaunchTests: XCTestCase {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-uitest-role-picker"]
+        app.launchEnvironment["WHATCHA_TEST_CHILD_CONNECTION"] = "test-\(UUID().uuidString)"
         app.launch()
         app.buttons["我是孩子 · 管理家人"].tap()
-        let endpoint = app.textFields["HTTPS 地址"]
-        XCTAssertTrue(endpoint.waitForExistence(timeout: 5))
-        endpoint.tap()
-        endpoint.typeText(origin)
-        let key = app.secureTextFields["管理员口令"]
-        key.tap()
-        key.typeText(token)
-        app.buttons["连接"].tap()
+        let setup = app.buttons["family-setup-paste"]
+        XCTAssertTrue(setup.waitForExistence(timeout: 5))
+        UIPasteboard.general.string = "在干嘛 · 管理邀请\n家庭服务：\(origin)\n管理口令：\(token)"
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in setup.isEnabled }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
+        setup.tap()
         let parent = app.descendants(matching: .any).matching(identifier: "family-conversation-review-session").firstMatch
         XCTAssertTrue(parent.waitForExistence(timeout: 12))
         keepScreenshot(app, named: "child-family-list")
@@ -51,6 +50,88 @@ final class LaunchTests: XCTestCase {
         app.buttons["发送"].tap()
         XCTAssertTrue(app.staticTexts[reply].waitForExistence(timeout: 10))
         keepScreenshot(app, named: "child-direct-reply")
+        app.navigationBars.buttons.firstMatch.tap()
+        let signOut = app.buttons["退出管理员连接"]
+        if !signOut.isHittable { app.swipeUp() }
+        signOut.tap()
+        XCTAssertTrue(setup.waitForExistence(timeout: 5))
+    }
+
+    func testParentAndChildShareOneConversation() throws {
+        let env = ProcessInfo.processInfo.environment
+        guard let invitation = env["WHATCHA_TEST_PARENT_INVITE"],
+              let origin = env["WHATCHA_TEST_FAMILY_ORIGIN"],
+              let token = env["WHATCHA_TEST_FAMILY_TOKEN"] else {
+            throw XCTSkip("Opt-in synthetic relay and HTTPS family fixture.")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        let testID = UUID().uuidString
+        app.launchArguments = ["-uitest-role-picker"]
+        app.launchEnvironment["WHATCHA_TEST_CHAT_STORE"] = testID
+        app.launchEnvironment["WHATCHA_TEST_CHILD_CONNECTION"] = "test-\(testID)"
+        app.launch()
+        app.buttons["我是家长"].tap()
+        paste(invitation, into: app.buttons["pairing-paste"])
+
+        let composer = app.descendants(matching: .any).matching(identifier: "消息").firstMatch
+        XCTAssertTrue(composer.waitForExistence(timeout: 35))
+        composer.tap()
+        composer.typeText("What were you working on this morning?")
+        app.buttons["发送"].tap()
+        let ai = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", "小雨，AI 代答", "库存"
+        )).firstMatch
+        XCTAssertTrue(ai.waitForExistence(timeout: 90))
+
+        app.buttons["关于"].tap()
+        app.buttons["选择身份"].tap()
+        app.buttons["我是孩子 · 管理家人"].tap()
+        paste("家庭服务：\(origin)\n管理口令：\(token)", into: app.buttons["family-setup-paste"])
+        let family = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND label CONTAINS %@", "family-conversation-", "Sprint Parent"
+        )).firstMatch
+        XCTAssertTrue(family.waitForExistence(timeout: 15))
+        family.tap()
+        let childDraft = app.descendants(matching: .any).matching(identifier: "写给Sprint Parent").firstMatch
+        XCTAssertTrue(childDraft.waitForExistence(timeout: 7))
+        childDraft.tap()
+        let reply = "Reply \(testID.prefix(8))"
+        childDraft.typeText(reply)
+        app.buttons["发送"].tap()
+        XCTAssertTrue(app.staticTexts[reply].waitForExistence(timeout: 10))
+        keepScreenshot(app, named: "child-sprint-reply")
+        app.navigationBars.buttons.firstMatch.tap()
+        if !app.buttons["选择身份"].isHittable { app.swipeUp() }
+        app.buttons["选择身份"].tap()
+        app.buttons["我是家长"].tap()
+        let direct = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label == %@", "小雨，本人：\(reply)")
+        ).firstMatch
+        XCTAssertTrue(direct.waitForExistence(timeout: 15))
+        XCTAssertTrue(ai.exists)
+        keepScreenshot(app, named: "parent-both-sources")
+
+        app.buttons["关于"].tap()
+        app.buttons["重新配对"].tap()
+        app.buttons["重新配对"].tap()
+        paste(invitation, into: app.buttons["pairing-paste"])
+        XCTAssertTrue(app.staticTexts["口令过期或用过了，\n请孩子重新发一条"].waitForExistence(timeout: 20))
+        app.buttons["返回原来的聊天"].tap()
+        XCTAssertTrue(direct.waitForExistence(timeout: 15))
+        app.terminate()
+        app.launch()
+        app.buttons["我是家长"].tap()
+        XCTAssertTrue(direct.waitForExistence(timeout: 15))
+        XCTAssertTrue(ai.exists)
+    }
+
+    private func paste(_ invitation: String, into button: XCUIElement) {
+        XCTAssertTrue(button.waitForExistence(timeout: 8))
+        UIPasteboard.general.string = invitation
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in button.isEnabled }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 7), .completed)
+        button.tap()
     }
 
     func testFirstLaunchMakesParentEntryProminentAndChildEntryReachable() {
@@ -66,6 +147,7 @@ final class LaunchTests: XCTestCase {
         keepScreenshot(app, named: "family-role-picker")
         child.tap()
         XCTAssertTrue(app.navigationBars["家人管理"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["family-setup-paste"].exists)
         app.buttons["选择身份"].tap()
         parent.tap()
         XCTAssertTrue(app.buttons["pairing-paste"].waitForExistence(timeout: 5))

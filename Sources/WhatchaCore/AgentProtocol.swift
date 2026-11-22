@@ -19,18 +19,42 @@ public struct AgentProtocol {
 
     let pairing: Pairing
     let wire: Wire
+    private let requiresInvitation: Bool
+    private var invitationValidated = false
+    private var connectedBeforeInvitation: Frame?
     public private(set) var sessionID: String?
 
-    public init(pairing: Pairing, wire: Wire, sessionID: String? = nil) {
-        self.pairing = pairing; self.wire = wire; self.sessionID = sessionID
+    public init(pairing: Pairing, wire: Wire, sessionID: String? = nil, requiresInvitation: Bool = false) {
+        self.pairing = pairing
+        self.wire = wire
+        self.sessionID = sessionID
+        self.requiresInvitation = requiresInvitation
     }
     public func opened() -> String { wire.connect(sessionID) }
+
+    public mutating func socketOpened() -> String {
+        connectedBeforeInvitation = nil
+        return opened()
+    }
     public mutating func receive(_ text: String) throws -> LinkUpdate {
         guard let frame = try JSONSerialization.jsonObject(with: Data(text.utf8)) as? Frame else {
             throw FrameError.expectedObject
         }
         switch frame["type"] as? String {
-        case "CONNECTED": return try connected(frame)
+        case "CONNECTED":
+            if requiresInvitation && !invitationValidated {
+                guard let invite = pairing.invite else { return refused() }
+                connectedBeforeInvitation = frame
+                return LinkUpdate(outgoing: wire.onboard(invite))
+            }
+            return try connected(frame)
+        case "ONBOARD_SUCCESS":
+            invitationValidated = true
+            if let connectedFrame = connectedBeforeInvitation {
+                connectedBeforeInvitation = nil
+                return try connected(connectedFrame)
+            }
+            return LinkUpdate()
         case "ONBOARD_REQUIRED":
             guard let invite = pairing.invite else { return refused() }
             return LinkUpdate(outgoing: wire.onboard(invite))

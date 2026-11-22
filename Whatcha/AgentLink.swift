@@ -13,10 +13,11 @@ final class AgentLink {
     private var socket: URLSessionWebSocketTask?
     private var heartbeat: Timer?
 
-    init(pairing: Pairing, identity: Identity, sessionID: String?) {
+    init(pairing: Pairing, identity: Identity, sessionID: String?, requiresInvitation: Bool = false) {
         self.pairing = pairing
         wire = Wire(me: identity, agent: pairing.agent)
-        protocolState = AgentProtocol(pairing: pairing, wire: wire, sessionID: sessionID)
+        protocolState = AgentProtocol(pairing: pairing, wire: wire, sessionID: sessionID,
+                                      requiresInvitation: requiresInvitation)
     }
 
     func open() {
@@ -24,7 +25,7 @@ final class AgentLink {
         let task = session.webSocketTask(with: pairing.relay.appendingPathComponent("ws/input"))
         socket = task
         task.resume()
-        sendFrame(protocolState.opened(), on: task)
+        sendFrame(protocolState.socketOpened(), on: task)
         receive(on: task)
         heartbeat = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self, weak task] _ in
             guard let link = self, let current = task else { return }

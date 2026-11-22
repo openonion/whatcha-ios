@@ -5,8 +5,8 @@ final class HeaderTests: XCTestCase {
     private func lines(_ delivery: Delivery) -> [Line] {
         [Line(fromParent: true, text: "在干嘛", at: 0, delivery: delivery)]
     }
-    func testTypingOnlyOnlineWithSentLine() {
-        XCTAssertEqual(headerTitle("小乐", lines: lines(.sent), status: .online), "对方正在输入...")
+    func testWaitingForReplyKeepsChildName() {
+        XCTAssertEqual(headerTitle("小乐", lines: lines(.sent), status: .online), "小乐")
     }
     func testOtherwiseShowsName() {
         for delivery in [Delivery.done, .queued, .failed] {

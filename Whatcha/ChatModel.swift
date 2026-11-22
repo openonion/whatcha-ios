@@ -7,6 +7,7 @@ final class ChatModel: ObservableObject {
     @Published private(set) var snapshot: ChatSnapshot
     @Published private(set) var status: Status
     @Published private(set) var pairingError: String?
+    @Published private(set) var replacingPairing = false
     private let store: ChatStore
     private let pairingStore: PairingStore
     private var pairing: Pairing?
@@ -15,6 +16,7 @@ final class ChatModel: ObservableObject {
     private var reconnectDelay: Double = 5
     private var retry: DispatchWorkItem?
     private var deadline: DispatchWorkItem?
+    private var replacementName: String?
 
     var lines: [Line] { snapshot.lines }
     var header: String { headerTitle(snapshot.title, lines: lines, status: status) }
@@ -23,16 +25,23 @@ final class ChatModel: ObservableObject {
 
     init() {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        store = ChatStore(url: directory.appendingPathComponent("chat.json"))
+        #if DEBUG
+        let isolated = ProcessInfo.processInfo.environment["WHATCHA_TEST_CHAT_STORE"].flatMap(UUID.init(uuidString:))
+        #else
+        let isolated: UUID? = nil
+        #endif
+        let fileName = isolated.map { "test-chat-\($0.uuidString).json" } ?? "chat.json"
+        store = ChatStore(url: directory.appendingPathComponent(fileName))
         var saved = store.load()
-        if saved.title == "小乐" { saved.title = "孩子" }
+        saved.title = saved.childName ?? (saved.title == "小乐" ? "孩子" : saved.title)
         snapshot = saved
         identity = Identity.loadFromKeychain()
         status = .unpaired
         #if DEBUG
         let unpairedTest = ProcessInfo.processInfo.arguments.contains("-uitest-unpaired")
         let testSuite = "ai.openonion.whatcha.UITests"
-        let defaults = unpairedTest ? UserDefaults(suiteName: testSuite)! : .standard
+        let defaults = isolated.flatMap { UserDefaults(suiteName: testSuite + "." + $0.uuidString) }
+            ?? (unpairedTest ? UserDefaults(suiteName: testSuite)! : .standard)
         if unpairedTest { defaults.removePersistentDomain(forName: testSuite) }
         pairingStore = PairingStore(defaults: defaults)
         if unpairedTest { return }
@@ -47,6 +56,14 @@ final class ChatModel: ObservableObject {
     func paste(_ text: String) {
         guard needsPairing else { return }
         pairingError = pairingPasteHint(pairing, status: status, text: text)
+        if replacingPairing {
+            guard pairingError == nil,
+                  let proposed = pairingAfterPaste(pairing, status: status, text: text),
+                  proposed != pairing else { return }
+            replacementName = Pairing.childName(in: text)
+            start(proposed)
+            return
+        }
         guard pairingError == nil,
               let pairing = pairingStore.pair(from: text, status: status),
               pairing != self.pairing else { return }
@@ -70,7 +87,8 @@ final class ChatModel: ObservableObject {
             status = .refused
             return
         }
-        link = AgentLink(pairing: pairing, identity: identity, sessionID: snapshot.sessionID)
+        link = AgentLink(pairing: pairing, identity: identity, sessionID: replacingPairing ? nil : snapshot.sessionID,
+                         requiresInvitation: replacingPairing)
         link!.onEvent = { [weak self] in self?.received($0) }
         link!.onDisconnected = { [weak self] in self?.disconnected() }
         reconnectDelay = 5
@@ -100,6 +118,13 @@ final class ChatModel: ObservableObject {
         open()
     }
 
+    func checkConnection() {
+        if status == .online, lines.contains(where: { $0.delivery == .sent }) {
+            link?.drop()
+        }
+        cameBack()
+    }
+
     func followChildMessages() async {
         struct FamilyAccess: Decodable { let revoked: Bool }
         guard let origin = childMessagesOrigin, let agent = pairing?.agent else { return }
@@ -122,7 +147,7 @@ final class ChatModel: ObservableObject {
                 guard !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent else { return }
                 let code = (response as? HTTPURLResponse)?.statusCode
                 if code == 403, (try? JSONDecoder().decode(FamilyAccess.self, from: data))?.revoked == true {
-                    clearRevokedPairing()
+                    resetPairing(message: "此前的家人配对已撤销，请孩子重新发送口令。")
                     return
                 }
                 guard code == 200 else { throw URLError(.badServerResponse) }
@@ -140,7 +165,22 @@ final class ChatModel: ObservableObject {
         }
     }
 
-    private func clearRevokedPairing() {
+    func beginPairingReplacement() {
+        replacingPairing = true
+        resetPairing()
+    }
+
+    func cancelPairingReplacement() {
+        guard replacingPairing, let previous = pairingStore.load() else { return }
+        replacingPairing = false
+        replacementName = nil
+        pairingError = nil
+        start(previous)
+    }
+
+    func needsClipboardRetry() { pairingError = "没能读取口令，请重新复制后再点「粘贴」。" }
+
+    private func resetPairing(message: String? = nil) {
         retry?.cancel()
         retry = nil
         deadline?.cancel()
@@ -150,10 +190,9 @@ final class ChatModel: ObservableObject {
         link?.drop()
         link = nil
         pairing = nil
-        pairingStore.clear()
+        if !replacingPairing { pairingStore.clear() }
         status = .unpaired
-        pairingError = "此前的家人配对已撤销，请孩子重新发送口令。"
-        save()
+        pairingError = message
     }
 
     private func sendQueued() {
@@ -164,8 +203,22 @@ final class ChatModel: ObservableObject {
     }
 
     private func received(_ event: LinkEvent) {
+        if replacingPairing {
+            switch event {
+            case .connected, .refused: break
+            case .error: pairingError = "没能连接到新的家庭服务。可重试或返回原来的聊天。"; return
+            default: return
+            }
+        }
         switch event {
         case .connected(let sessionID, let running, let history):
+            if replacingPairing {
+                snapshot = ChatSnapshot()
+                snapshot.childName = replacementName
+                snapshot.title = replacementName ?? "孩子"
+                replacingPairing = false
+                replacementName = nil
+            }
             pairing = pairing!.afterConnected()
             pairingStore.save(pairing!)
             snapshot.sessionID = sessionID
@@ -190,7 +243,7 @@ final class ChatModel: ObservableObject {
 
     private func refused() {
         pairing = pairing!.afterRefused()
-        pairingStore.save(pairing!)
+        if !replacingPairing { pairingStore.save(pairing!) }
         status = .refused
         retry?.cancel()
         retry = nil
