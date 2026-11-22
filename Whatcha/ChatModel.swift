@@ -50,7 +50,7 @@ final class ChatModel: ObservableObject {
         guard pairingError == nil,
               let pairing = pairingStore.pair(from: text, status: status),
               pairing != self.pairing else { return }
-        snapshot.sessionID = nil
+        snapshot = ChatSnapshot()
         snapshot.childName = Pairing.childName(in: text)
         snapshot.title = snapshot.childName ?? "孩子"
         save()
@@ -101,6 +101,7 @@ final class ChatModel: ObservableObject {
     }
 
     func followChildMessages() async {
+        struct FamilyAccess: Decodable { let revoked: Bool }
         guard let origin = childMessagesOrigin, let agent = pairing?.agent else { return }
         let session = URLSession(configuration: .ephemeral, delegate: FamilyRequestDelegate(), delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
@@ -119,7 +120,12 @@ final class ChatModel: ObservableObject {
                 request.setValue(identity.sign(Data(proof.utf8)), forHTTPHeaderField: "X-Whatcha-Signature")
                 let (data, response) = try await session.data(for: request)
                 guard !Task.isCancelled, childMessagesOrigin == origin, pairing?.agent == agent else { return }
-                guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+                let code = (response as? HTTPURLResponse)?.statusCode
+                if code == 403, (try? JSONDecoder().decode(FamilyAccess.self, from: data))?.revoked == true {
+                    clearRevokedPairing()
+                    return
+                }
+                guard code == 200 else { throw URLError(.badServerResponse) }
                 let page = try JSONDecoder().decode(ChildMessagePage.self, from: data)
                 let combined = lines.addingChildMessages(page.messages)
                 if combined.count != lines.count {
@@ -132,6 +138,22 @@ final class ChatModel: ObservableObject {
             }
             try? await Task.sleep(for: .seconds(delay))
         }
+    }
+
+    private func clearRevokedPairing() {
+        retry?.cancel()
+        retry = nil
+        deadline?.cancel()
+        deadline = nil
+        link?.onDisconnected = nil
+        link?.onEvent = nil
+        link?.drop()
+        link = nil
+        pairing = nil
+        pairingStore.clear()
+        status = .unpaired
+        pairingError = "此前的家人配对已撤销，请孩子重新发送口令。"
+        save()
     }
 
     private func sendQueued() {

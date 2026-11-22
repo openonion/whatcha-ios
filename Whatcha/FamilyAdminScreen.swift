@@ -99,6 +99,7 @@ struct FamilyAdminScreen: View {
     @State private var token = ""
     @State private var label = ""
     @State private var invitation: String?
+    @State private var revoking: FamilyMember?
     @State private var busy = false
     @State private var error: String?
 
@@ -118,6 +119,9 @@ struct FamilyAdminScreen: View {
                         if overview?.members.isEmpty == true { Text("还没有家人配对") }
                         ForEach(overview?.members ?? []) { member in
                             LabeledContent(member.label, value: member.paired ? "已配对" : "待配对")
+                                .swipeActions {
+                                    Button("撤销", role: .destructive) { revoking = member }
+                                }
                         }
                     }
                     Section("会话") {
@@ -159,6 +163,16 @@ struct FamilyAdminScreen: View {
                 Button("选择身份", action: switchRole).disabled(busy)
             }
             .navigationTitle("家人管理")
+            .alert("撤销家人配对？", isPresented: Binding(
+                get: { revoking != nil }, set: { if !$0 { revoking = nil } }
+            ), presenting: revoking) { member in
+                Button("确认撤销", role: .destructive) {
+                    if let connection { Task { await revoke(member, connection: connection) } }
+                }
+                Button("取消", role: .cancel) {}
+            } message: { member in
+                Text("\(member.label) 需要新的邀请才能重新配对。")
+            }
             .task {
                 if let connection { await refresh(connection) }
             }
@@ -226,6 +240,23 @@ struct FamilyAdminScreen: View {
             } catch {
                 self.error = "生成口令失败。请刷新家人列表后再试。"
             }
+        }
+    }
+
+    private func revoke(_ member: FamilyMember, connection: FamilyConnection) async {
+        struct Receipt: Decodable { let id: String }
+        guard !busy else { return }
+        busy = true
+        do {
+            let body = try JSONEncoder().encode(["id": member.id])
+            let receipt: Receipt = try await connection.request("family/revoke", body: body)
+            guard receipt.id == member.id else { throw URLError(.badServerResponse) }
+            invitation = nil
+            busy = false
+            await refresh(connection)
+        } catch {
+            self.error = "撤销失败，请刷新后重试。"
+            busy = false
         }
     }
 }

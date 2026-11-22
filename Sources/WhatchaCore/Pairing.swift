@@ -102,6 +102,8 @@ public struct PairingStore {
         defaults.set(try! JSONEncoder().encode(pairing), forKey: "pairing")
     }
 
+    public func clear() { defaults.removeObject(forKey: "pairing") }
+
     public func pair(from text: String, status: Status = .unpaired) -> Pairing? {
         let current = load()
         guard canPastePairing(current, status: status) else { return current }
