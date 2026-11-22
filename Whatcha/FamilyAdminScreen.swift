@@ -1,6 +1,8 @@
+import CryptoKit
 import Foundation
 import Security
 import SwiftUI
+import UserNotifications
 import WhatchaCore
 
 private struct FamilyMember: Decodable, Identifiable {
@@ -25,6 +27,13 @@ private struct FamilyConversation: Decodable, Identifiable {
 private struct FamilyOverview: Decodable {
     let members: [FamilyMember]
     let conversations: [FamilyConversation]
+    let handoffs: [Handoff]?
+
+    struct Handoff: Decodable, Identifiable {
+        let id: Int64
+        let parent: String
+        let text: String
+    }
 }
 
 private struct FamilyConnection: Codable {
@@ -93,6 +102,10 @@ final class FamilyRequestDelegate: NSObject, URLSessionTaskDelegate {
 
 struct FamilyAdminScreen: View {
     let switchRole: () -> Void
+    @EnvironmentObject private var notifications: FamilyNotificationDelegate
+    @AppStorage("childNotificationsToken") private var registeredToken = ""
+    @State private var showHandoffs = false
+    @State private var requestingNotifications = false
     @State private var connection = FamilyConnection.load()
     @State private var overview: FamilyOverview?
     @State private var endpoint = ""
@@ -137,18 +150,21 @@ struct FamilyAdminScreen: View {
                                     }
                                 }
                             }
+                            .accessibilityIdentifier("family-conversation-\(conversation.id)")
                         }
                     }
+                    Button {
+                        showHandoffs = true
+                    } label: {
+                        LabeledContent("家人留言", value: String(overview?.handoffs?.count ?? 0))
+                    }
+                    Button(registeredToken.isEmpty ? "开启留言提醒" : "关闭留言提醒") {
+                        Task { await toggleNotifications(connection) }
+                    }.disabled(busy || requestingNotifications)
                     Button("刷新家人和会话") { Task { await refresh(connection) } }.disabled(busy)
                     Button("退出管理员连接") {
-                        guard FamilyConnection.remove() else {
-                            error = "无法清除管理员连接。请重试。"
-                            return
-                        }
-                        self.connection = nil
-                        overview = nil
-                        invitation = nil
-                    }.disabled(busy)
+                        Task { await disconnect(connection) }
+                    }.disabled(busy || requestingNotifications)
                 } else {
                     Section("连接家庭服务") {
                         TextField("HTTPS 地址", text: $endpoint)
@@ -163,6 +179,25 @@ struct FamilyAdminScreen: View {
                 Button("选择身份", action: switchRole).disabled(busy)
             }
             .navigationTitle("家人管理")
+            .navigationDestination(isPresented: $showHandoffs) {
+                List {
+                    if overview?.handoffs?.isEmpty != false { Text("暂无待处理留言") }
+                    ForEach(overview?.handoffs ?? []) { handoff in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(handoff.text)
+                            if let conversation = conversations.first(where: { $0.parent == handoff.parent }),
+                               let connection {
+                                NavigationLink("打开\(conversation.label)的会话") {
+                                    FamilyConversationScreen(connection: connection, conversation: conversation)
+                                }
+                                Button("标记已处理") { Task { await resolve(handoff, connection: connection) } }
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("家人留言")
+                .refreshable { if let connection { await refresh(connection) } }
+            }
             .alert("撤销家人配对？", isPresented: Binding(
                 get: { revoking != nil }, set: { if !$0 { revoking = nil } }
             ), presenting: revoking) { member in
@@ -174,7 +209,28 @@ struct FamilyAdminScreen: View {
                 Text("\(member.label) 需要新的邀请才能重新配对。")
             }
             .task {
-                if let connection { await refresh(connection) }
+                if let connection {
+                    await refresh(connection)
+                    if !registeredToken.isEmpty { UIApplication.shared.registerForRemoteNotifications() }
+                    if notifications.handoffOpenCount > 0 { showHandoffs = true }
+                }
+            }
+            .onReceive(notifications.$token) { token in
+                if let token, let connection, requestingNotifications || !registeredToken.isEmpty {
+                    Task { await updateNotificationToken(token, connection: connection) }
+                }
+            }
+            .onChange(of: notifications.registrationFailed) { _, failed in
+                if failed {
+                    requestingNotifications = false
+                    error = "未能注册 iPhone 提醒，请稍后重试。"
+                }
+            }
+            .onChange(of: notifications.handoffOpenCount) { _, _ in
+                if let connection {
+                    showHandoffs = true
+                    Task { await refresh(connection) }
+                }
             }
         }
     }
@@ -259,18 +315,90 @@ struct FamilyAdminScreen: View {
             busy = false
         }
     }
+
+    private func toggleNotifications(_ connection: FamilyConnection) async {
+        do {
+            if registeredToken.isEmpty {
+                guard try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) else {
+                    error = "可在 iPhone 设置中允许「在干嘛」发送提醒。"
+                    return
+                }
+                requestingNotifications = true
+                UIApplication.shared.registerForRemoteNotifications()
+            } else {
+                try await setNotification(registeredToken, enabled: false, connection)
+                registeredToken = ""
+                UIApplication.shared.unregisterForRemoteNotifications()
+            }
+        } catch {
+            self.error = "无法更新留言提醒，请重试。"
+        }
+    }
+
+    private func updateNotificationToken(_ token: String, connection: FamilyConnection) async {
+        defer { requestingNotifications = false }
+        guard token != registeredToken else { return }
+        do {
+            if !registeredToken.isEmpty { try await setNotification(registeredToken, enabled: false, connection) }
+            try await setNotification(token, enabled: true, connection)
+            registeredToken = token
+            error = nil
+        } catch {
+            self.error = "提醒未连接到家庭服务，请重试。"
+        }
+    }
+
+    private func setNotification(_ token: String, enabled: Bool, _ connection: FamilyConnection) async throws {
+        struct Registration: Codable { let token: String; let enabled: Bool }
+        struct Receipt: Decodable { let enabled: Bool }
+        let data = try JSONEncoder().encode(Registration(token: token, enabled: enabled))
+        let result: Receipt = try await connection.request("family/notifications", body: data)
+        guard result.enabled == enabled else { throw URLError(.badServerResponse) }
+    }
+
+    private func resolve(_ handoff: FamilyOverview.Handoff, connection: FamilyConnection) async {
+        struct Receipt: Decodable { let id: Int64 }
+        do {
+            let data = try JSONEncoder().encode(["id": handoff.id])
+            let _: Receipt = try await connection.request("family/resolve-handoff", body: data)
+            await refresh(connection)
+        } catch {
+            self.error = "无法更新家人留言，请刷新后重试。"
+        }
+    }
+
+    private func disconnect(_ connection: FamilyConnection) async {
+        guard !busy else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            if !registeredToken.isEmpty {
+                try await setNotification(registeredToken, enabled: false, connection)
+                registeredToken = ""
+                UIApplication.shared.unregisterForRemoteNotifications()
+            }
+            guard FamilyConnection.remove() else { throw CocoaError(.fileWriteUnknown) }
+            self.connection = nil
+            overview = nil
+            invitation = nil
+            error = nil
+        } catch {
+            self.error = "无法退出管理员连接，请检查网络后重试。"
+        }
+    }
 }
 
 private struct FamilyConversationScreen: View {
     let connection: FamilyConnection
     let conversation: FamilyConversation
     @State private var manual: [ChildMessage] = []
+    @State private var hostMessages: [FamilyConversation.Message]?
     @State private var draft = ""
     @State private var pending: Outgoing?
     @State private var busy = false
     @State private var error: String?
 
-    private struct Outgoing: Encodable {
+    private struct Outgoing: Codable {
         var id = UUID().uuidString.lowercased()
         let parent: String
         let text: String
@@ -278,7 +406,7 @@ private struct FamilyConversationScreen: View {
 
     var body: some View {
         List {
-            ForEach(conversation.messages) { message in
+            ForEach(hostMessages ?? conversation.messages) { message in
                 row(message.sender == "user" ? conversation.label : "AI 代答", message.text)
             }
             ForEach(manual) { message in row("我", message.text) }
@@ -293,7 +421,15 @@ private struct FamilyConversationScreen: View {
         }
         .navigationTitle(conversation.label)
         .refreshable { await refresh() }
-        .task { await refresh() }
+        .task {
+            if draft.isEmpty, let path = try? pendingURL(),
+               let data = try? Data(contentsOf: path),
+               let restored = try? JSONDecoder().decode(Outgoing.self, from: data) {
+                pending = restored
+                draft = restored.text
+            }
+            await refresh()
+        }
     }
 
     private var text: String { draft.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -318,10 +454,25 @@ private struct FamilyConversationScreen: View {
                 guard page.messages.count == 100, let next = page.messages.last?.sequence, next > after else { break }
                 after = next
             }
-            if !Task.isCancelled { manual = received }
+            let latest: FamilyOverview = try await connection.request("family")
+            if !Task.isCancelled {
+                manual = received
+                hostMessages = latest.conversations.first { $0.id == conversation.id }?.messages
+                    ?? latest.conversations.first { $0.parent == parent }?.messages
+                    ?? []
+            }
         } catch {
             if !Task.isCancelled { self.error = "没能加载本人发出的消息，请下拉重试。" }
         }
+    }
+
+    private func pendingURL() throws -> URL {
+        guard let parent = conversation.parent else { throw URLError(.badURL) }
+        let path = URL.applicationSupportDirectory.appending(path: "FamilyOutbox", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
+        let identifier = SHA256.hash(data: Data("\(connection.url.absoluteString)\n\(connection.token)\n\(parent)".utf8))
+            .map { String(format: "%02x", $0) }.joined()
+        return path.appending(path: identifier)
     }
 
     private func send(parent: String) async {
@@ -332,8 +483,12 @@ private struct FamilyConversationScreen: View {
         busy = true
         defer { busy = false }
         do {
-            let receipt: Receipt = try await connection.request("family/child-messages", body: JSONEncoder().encode(outgoing))
+            let path = try pendingURL()
+            let body = try JSONEncoder().encode(outgoing)
+            try body.write(to: path, options: [.atomic, .completeFileProtection])
+            let receipt: Receipt = try await connection.request("family/child-messages", body: body)
             guard receipt.id == outgoing.id else { throw URLError(.badServerResponse) }
+            try FileManager.default.removeItem(at: path)
             draft = ""
             pending = nil
             error = nil

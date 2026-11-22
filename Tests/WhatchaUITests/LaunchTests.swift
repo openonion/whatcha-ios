@@ -2,6 +2,57 @@ import XCTest
 import UIKit
 
 final class LaunchTests: XCTestCase {
+    func testPhysicalPushRegistration() throws {
+        guard ProcessInfo.processInfo.environment["WHATCHA_PHYSICAL_PUSH"] == "1" else {
+            throw XCTSkip("Opt-in Apple sandbox push registration on a test phone.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest-role-picker", "-uitest-apns-registration"]
+        app.launch()
+        let alert = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch
+        if alert.waitForExistence(timeout: 5) {
+            let allow = alert.buttons.matching(NSPredicate(format: "label IN %@", ["Allow", "允许"])).firstMatch
+            if allow.exists { allow.tap() }
+        }
+        XCTAssertTrue(app.buttons["我是家长"].waitForExistence(timeout: 10))
+        let registration = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in alert.exists }, object: nil)
+        _ = XCTWaiter.wait(for: [registration], timeout: 7)
+    }
+
+    func testChildManagementAgainstFamilyService() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let origin = environment["WHATCHA_TEST_FAMILY_ORIGIN"],
+              let token = environment["WHATCHA_TEST_FAMILY_TOKEN"] else {
+            throw XCTSkip("Opt-in synthetic family HTTPS fixture.")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitest-role-picker"]
+        app.launch()
+        app.buttons["我是孩子 · 管理家人"].tap()
+        let endpoint = app.textFields["HTTPS 地址"]
+        XCTAssertTrue(endpoint.waitForExistence(timeout: 5))
+        endpoint.tap()
+        endpoint.typeText(origin)
+        let key = app.secureTextFields["管理员口令"]
+        key.tap()
+        key.typeText(token)
+        app.buttons["连接"].tap()
+        let parent = app.descendants(matching: .any).matching(identifier: "family-conversation-review-session").firstMatch
+        XCTAssertTrue(parent.waitForExistence(timeout: 12))
+        keepScreenshot(app, named: "child-family-list")
+        parent.tap()
+        XCTAssertTrue(app.staticTexts["Review question"].waitForExistence(timeout: 6))
+        let draft = app.descendants(matching: .any).matching(identifier: "写给Review Parent").firstMatch
+        XCTAssertTrue(draft.exists)
+        draft.tap()
+        let reply = "Reply \(UUID().uuidString.prefix(8))"
+        draft.typeText(reply)
+        app.buttons["发送"].tap()
+        XCTAssertTrue(app.staticTexts[reply].waitForExistence(timeout: 10))
+        keepScreenshot(app, named: "child-direct-reply")
+    }
+
     func testFirstLaunchMakesParentEntryProminentAndChildEntryReachable() {
         let app = XCUIApplication()
         app.launchArguments = ["-uitest-role-picker"]
